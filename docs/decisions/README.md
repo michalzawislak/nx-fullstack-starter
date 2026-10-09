@@ -14,5 +14,6 @@ Każda decyzja z PRD (sekcje 2 i 12) ma tutaj zapis: kontekst, decyzję, odrzuco
 | [0008](0008-kontekst-ai.md)       | Kontekst dla narzędzi AI z jednego źródła        | przyjęta |
 | [0009](0009-angular-22-2.md)      | Angular 22.2 zamiast 22.1 instalowanego przez Nx | przyjęta |
 | [0010](0010-nestjs-11.md)         | NestJS 11 na start                               | przyjęta |
+| [0011](0011-polityka-audytu.md)   | Polityka audytu zależności                       | przyjęta |
 
 Otwarte decyzje (ORM, biblioteka UI, plugin bezpiecznego magazynu) dostaną ADR, gdy zostaną rozstrzygnięte w krokach 5, 7 i 8.

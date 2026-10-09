@@ -3,6 +3,9 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
+    "dev": "npm run db:up && nx run-many -t serve -p web api",
+    "db:up": "docker compose up -d --wait postgres",
+    "db:down": "docker compose down",
     "ai:sync": "node tools/ai/sync.mts",
     "ai:check": "node tools/ai/sync.mts --check && nx configure-ai-agents --check"
   },
@@ -14,6 +17,10 @@
     "@angular/forms": "~22.2.2",
     "@angular/platform-browser": "~22.2.2",
     "@angular/router": "~22.2.2",
+    "@nestjs/common": "~11.2.7",
+    "@nestjs/core": "~11.2.7",
+    "@nestjs/platform-express": "~11.2.7",
+    "reflect-metadata": "^0.2.0",
     "rxjs": "~7.8.0"
   },
   "devDependencies": {
@@ -24,19 +31,27 @@
     "@angular/compiler-cli": "~22.2.2",
     "@angular/language-service": "~22.2.2",
     "@eslint/js": "^9.8.0",
+    "@nestjs/schematics": "^11.0.0",
+    "@nestjs/testing": "~11.2.7",
     "@nx/angular": "23.3.0",
     "@nx/devkit": "23.3.0",
     "@nx/eslint": "23.3.0",
     "@nx/eslint-plugin": "23.3.0",
     "@nx/js": "23.3.0",
+    "@nx/nest": "23.3.0",
+    "@nx/node": "23.3.0",
     "@nx/playwright": "23.3.0",
+    "@nx/vite": "23.3.0",
+    "@nx/vitest": "23.3.0",
     "@nx/web": "23.3.0",
+    "@nx/webpack": "23.3.0",
     "@nx/workspace": "23.3.0",
     "@playwright/test": "^1.37.0",
     "@schematics/angular": "~22.2.2",
     "@swc/helpers": "~0.5.18",
     "@types/node": "^24.19.1",
     "@typescript-eslint/utils": "^8.58.0",
+    "@vitest/coverage-v8": "^4.0.0",
     "angular-eslint": "^22.1.0",
     "eslint": "^9.8.0",
     "eslint-config-prettier": "^10.0.0",
@@ -47,7 +62,12 @@
     "tslib": "^2.3.0",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.58.0",
-    "vitest": "^4.0.8"
+    "vite": "^8.0.0",
+    "vite-tsconfig-paths": "^6.1.1",
+    "vitest": "^4.0.8",
+    "webpack": "~5.110.0",
+    "webpack-cli": "^7.0.0",
+    "webpack-dev-server": "^5.2.1"
   },
   "overrides": {
     "undici": "^7.30.0"

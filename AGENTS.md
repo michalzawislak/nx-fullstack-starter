@@ -11,25 +11,30 @@ Monorepo starter: one codebase for a web app, iOS and Android apps (Capacitor) a
 ```
 apps/web          Angular app (web + source for Capacitor)
 apps/web-e2e      Playwright tests for apps/web
+apps/api          NestJS 11 API (GET /health; auth and /v1 from step 5)
+docker-compose.yml  PostgreSQL 18 for local development
 tools/ai          AI context generator (sync.mts) and MCP server list
 docs/             PRD, ADRs, product context
 ```
 
-Planned by the PRD and not created yet: `apps/api` (NestJS), `libs/shared/contracts`, `libs/web/*`, `libs/api/*`, `capacitor.config.ts`, `ios/`, `android/`, `docker-compose.yml`. Each new area gets its own `AGENTS.md`.
+Planned by the PRD and not created yet: `libs/shared/contracts`, `libs/web/*`, `libs/api/*`, `capacitor.config.ts`, `ios/`, `android/`. Each new area gets its own `AGENTS.md`.
 
 ## Commands
 
 Node 24 (`.nvmrc`) and npm 11 or newer are required.
 
-| Task                        | Command                                                    |
-| --------------------------- | ---------------------------------------------------------- |
-| Install                     | `npm install`                                              |
-| Run the web app             | `npx nx serve web`                                         |
-| Verify a change             | `npx nx affected -t lint test build`                       |
-| Verify everything           | `npx nx run-many -t lint test build`                       |
-| E2E                         | `npx nx e2e web-e2e` (first run: `npx playwright install`) |
-| Regenerate AI context files | `npm run ai:sync`                                          |
-| Check AI context files      | `npm run ai:check`                                         |
+| Task                        | Command                                                     |
+| --------------------------- | ----------------------------------------------------------- |
+| Install                     | `npm install`                                               |
+| Run database, web and API   | `npm run dev` (needs Docker; copy `.env.example` to `.env`) |
+| Run the web app             | `npx nx serve web`                                          |
+| Run the API                 | `npx nx serve api` (http://localhost:3000/health)           |
+| Start / stop PostgreSQL     | `npm run db:up` / `npm run db:down`                         |
+| Verify a change             | `npx nx affected -t lint test build`                        |
+| Verify everything           | `npx nx run-many -t lint test build`                        |
+| E2E                         | `npx nx e2e web-e2e` (first run: `npx playwright install`)  |
+| Regenerate AI context files | `npm run ai:sync`                                           |
+| Check AI context files      | `npm run ai:check`                                          |
 
 Run the verify command before you consider a change done.
 

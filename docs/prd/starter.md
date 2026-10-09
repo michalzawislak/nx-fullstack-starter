@@ -1,6 +1,6 @@
 # PRD: Starter Nx + Angular + NestJS + PostgreSQL + Capacitor
 
-Oct 9, 2026 · @Michał Zawiślak · wersja 3: wyniki kroku 1 (wersje, generatory Nx, kontekst AI)
+Oct 9, 2026 · @Michał Zawiślak · wersja 4: wyniki kroków 1–2
 
 ## 1. Cel i zakres
 
@@ -418,7 +418,7 @@ Kompilacja natywna i publikacja w sklepach są poza zakresem. README opisuje, ja
 ### 9.5 Bezpieczeństwo
 
 - **QA-11.** Brak sekretów w repozytorium i w bundlu frontendu; skan sekretów w CI.
-- **QA-12.** `npm audit` w CI; podatności o poziomie wysokim i krytycznym przerywają pipeline.
+- **QA-12.** `npm audit --omit=dev --audit-level=high` w CI przerywa pipeline przy podatnościach wysokich i krytycznych w zależnościach produkcyjnych. Pełny `npm audit` z zależnościami deweloperskimi jest raportowany bez blokowania, a znane poprawki trafiają do `overrides` (ADR-0011).
 - **QA-13.** Content Security Policy dla wersji web; brak `innerHTML` i `bypassSecurityTrust*` w kodzie startera.
 
 ## 10. Kontekst dla narzędzi AI
@@ -520,12 +520,21 @@ Kontekst AI: przenieś ten dokument do `docs/prd/starter.md`, utwórz szkielet `
 ### Krok 2. Backend i baza
 
 ```bash
-nx add @nx/nest
-nx g @nx/nest:app apps/api --frontendProject web
-docker compose up -d         # PostgreSQL 18
+npx nx add @nx/nest
+npx nx g @nx/nest:app apps/api --unitTestRunner=vitest --e2eTestRunner=none --strict --tags=scope:api,type:app
+npm run db:up                # docker compose up -d --wait postgres (PostgreSQL 18)
+npm run dev                  # baza + web + API jedną komendą
 ```
 
-**Gotowe, gdy:** `nx serve api` odpowiada na `GET /health`, a `nx build api` przechodzi na TypeScripcie 6.0. Jeśli build nie przechodzi, zatrzymaj się tutaj i rozwiąż zgodność wersji (ryzyko R1).
+Uwagi z wykonania kroku 2:
+
+- Bez `--frontendProject web`: ta flaga dodaje proxy dla względnej ścieżki `/api`, co jest sprzeczne z FE-12. Usunięty też globalny prefiks `/api` z wygenerowanego `main.ts`.
+- Wygenerowana konfiguracja Vitest używa pluginów `nxViteTsPaths` i `nxCopyAssetsPlugin`, które Nx 24 usuwa; zastąpione przez `vite-tsconfig-paths`.
+- Build API zostaje na webpacku z kompilatorem TypeScript, bo esbuild nie emituje metadanych dekoratorów potrzebnych DI NestJS.
+- Obraz `postgres:18` trzyma dane w `/var/lib/postgresql/18/docker`, więc wolumen jest montowany w `/var/lib/postgresql`, a nie w `/var/lib/postgresql/data` jak w starszych wersjach.
+- `@nx/nest` wprowadza `webpack-dev-server` z podatnością bez poprawki; polityka audytu w ADR-0011.
+
+**Gotowe, gdy:** `nx serve api` odpowiada na `GET /health`, a `nx build api` przechodzi na TypeScripcie 6.0. Jeśli build nie przechodzi, zatrzymaj się tutaj i rozwiąż zgodność wersji (ryzyko R1). Stan: build NestJS 11.2.7 na TypeScripcie 6.0.3 przechodzi, testy z prawdziwym DI przechodzą. Sprawdzenie bazy w `/health` dochodzi w kroku 5 razem z `libs/api/database`.
 
 ### Krok 3. Biblioteki i granice
 
@@ -623,7 +632,7 @@ Trzy kwestie nie padły w dotychczasowych ustaleniach. Dokument przyjmuje dla ni
 
 | Nr | Ryzyko | Skutek | Postępowanie |
 | --- | --- | --- | --- |
-| R1 | Jedna wersja TypeScriptu (6.0) dla Angulara 22 i NestJS; zgodność NestJS 11 z TypeScriptem 6.0 nie jest potwierdzona w źródłach | Build API nie przechodzi | Test dymny w kroku 2. W razie błędu przejść na NestJS 12 skonfigurowany ręcznie jako projekt Nx bez generatorów `@nx/nest` |
+| R1 | Jedna wersja TypeScriptu (6.0) dla Angulara 22 i NestJS; zgodność NestJS 11 z TypeScriptem 6.0 nie jest potwierdzona w źródłach | Build API nie przechodzi | Zamknięte w kroku 2: build i testy NestJS 11.2.7 na TypeScripcie 6.0.3 przechodzą |
 | R2 | `@nx/nest` nie wspiera jeszcze NestJS 12 | Start na przedostatniej wersji głównej | Reguła z sekcji 3; migracja komendą `nest upgrade` po aktualizacji pluginu |
 | R3 | Nx 23.3 instaluje Angulara 22.1, który ma podatności; starter używa 22.2 spoza domyślnej wersji Nx | Generator lub migracja Nx może zakładać 22.1 | ADR-0009; przy każdym `nx migrate latest` sprawdzić, czy wyjątek i `overrides` są jeszcze potrzebne |
 | R4 | Capacitor 9 jest w przygotowaniu | Migracja wersji głównej w ciągu życia startera | Pluginy tylko za abstrakcjami, więc zmiana dotyczy jednej biblioteki |
