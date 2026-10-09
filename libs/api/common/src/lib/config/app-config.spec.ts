@@ -31,7 +31,8 @@ describe('loadAppConfig', () => {
     const environment = {
       ...validEnvironment,
       NODE_ENV: 'production',
-      PORT: '8080',
+      API_PORT: '8080',
+      PORT: '9000',
       CORS_ORIGINS: ' https://app.example.com , capacitor://localhost ',
       MIN_APP_VERSION_IOS: '2.1.0',
     };
@@ -49,12 +50,23 @@ describe('loadAppConfig', () => {
     expect(config.minimumAppVersions.ios).toBe('2.1.0');
   });
 
+  it('falls back to the PORT of a hosting platform', () => {
+    // Arrange
+    const environment = { ...validEnvironment, PORT: '9000' };
+
+    // Act
+    const config = loadAppConfig(environment);
+
+    // Assert
+    expect(config.port).toBe(9000);
+  });
+
   it('lists every missing or invalid variable in one error', () => {
     // Arrange
     const environment = {
       DATABASE_URL: 'mysql://localhost/db',
       JWT_ACCESS_SECRET: 'short',
-      PORT: 'abc',
+      API_PORT: 'abc',
     };
 
     // Act
@@ -68,7 +80,7 @@ describe('loadAppConfig', () => {
       const problems = (error as InvalidConfigurationError).problems.join('\n');
       expect(problems).toContain('DATABASE_URL');
       expect(problems).toContain('JWT_ACCESS_SECRET');
-      expect(problems).toContain('PORT');
+      expect(problems).toContain('API_PORT');
     }
   });
 });

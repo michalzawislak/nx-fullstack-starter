@@ -13,6 +13,8 @@ const DEFAULT_CORS_ORIGINS = [
   'https://localhost',
 ];
 
+const DEFAULT_PORT = 3000;
+
 /** Every app version is supported unless MIN_APP_VERSION_<PLATFORM> says otherwise. */
 const NO_MINIMUM_VERSION = '0.0.0';
 
@@ -39,7 +41,13 @@ export const environmentSchema = z.object({
     z.enum(['development', 'test', 'production']),
     'development',
   ),
-  PORT: z._default(integerVariable(1, 65_535), 3000),
+  /**
+   * Not `PORT`: Nx loads .env into every task, and the Angular dev server moves to any port in
+   * `PORT`, so `npm run dev` would start the web app on the API port.
+   */
+  API_PORT: z.optional(integerVariable(1, 65_535)),
+  /** Set by hosting platforms (Heroku, Render, Cloud Run); used when API_PORT is absent. */
+  PORT: z.optional(integerVariable(1, 65_535)),
   DATABASE_URL: z.url({ protocol: /^postgres(ql)?$/ }),
   JWT_ACCESS_SECRET: z
     .string()
@@ -99,7 +107,7 @@ export function loadAppConfig(
   return {
     environment: variables.NODE_ENV,
     isProduction: variables.NODE_ENV === 'production',
-    port: variables.PORT,
+    port: variables.API_PORT ?? variables.PORT ?? DEFAULT_PORT,
     databaseUrl: variables.DATABASE_URL,
     jwtAccessSecret: variables.JWT_ACCESS_SECRET,
     accessTokenTtlSeconds: variables.JWT_ACCESS_TTL_SECONDS,
