@@ -1,0 +1,8 @@
+{
+  "name": "web-core-auth",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/web/core/auth/src",
+  "prefix": "app",
+  "projectType": "library",
+  "tags": ["scope:web", "type:core"]
+}

@@ -1,6 +1,7 @@
 import { Controller, Get } from '@nestjs/common';
-import type { HealthStatus } from './health-status';
+
 import { HealthService } from './health.service';
+import type { HealthStatus } from './health-status';
 
 @Controller('health')
 export class HealthController {

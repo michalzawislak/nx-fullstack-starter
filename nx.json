@@ -18,17 +18,6 @@
       "dependsOn": ["^build"],
       "inputs": ["production", "^production"]
     },
-    "@nx/eslint:lint": {
-      "cache": true,
-      "inputs": [
-        "default",
-        "^default",
-        "{workspaceRoot}/.eslintrc.json",
-        "{workspaceRoot}/.eslintignore",
-        "{workspaceRoot}/eslint.config.mjs",
-        "{workspaceRoot}/tools/eslint-rules/**/*"
-      ]
-    },
     "@angular/build:unit-test": {
       "cache": true,
       "inputs": ["default", "^production"]
@@ -72,7 +61,31 @@
       "e2eTestRunner": "playwright",
       "linter": "eslint",
       "style": "scss",
-      "unitTestRunner": "vitest"
+      "unitTestRunner": "vitest-angular"
+    },
+    "@nx/angular:library": {
+      "linter": "eslint",
+      "unitTestRunner": "vitest-analog",
+      "standalone": true,
+      "strict": true,
+      "style": "scss",
+      "changeDetection": "OnPush",
+      "prefix": "app"
+    },
+    "@nx/angular:component": {
+      "style": "scss",
+      "changeDetection": "OnPush"
+    },
+    "@nx/nest:library": {
+      "unitTestRunner": "vitest",
+      "strict": true,
+      "linter": "eslint"
+    },
+    "@nx/js:library": {
+      "unitTestRunner": "vitest",
+      "bundler": "none",
+      "strict": true,
+      "linter": "eslint"
     }
   }
 }

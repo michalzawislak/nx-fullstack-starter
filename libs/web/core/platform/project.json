@@ -1,0 +1,8 @@
+{
+  "name": "web-core-platform",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/web/core/platform/src",
+  "prefix": "app",
+  "projectType": "library",
+  "tags": ["scope:web", "type:core"]
+}

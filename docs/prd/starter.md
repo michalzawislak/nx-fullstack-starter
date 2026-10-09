@@ -1,6 +1,6 @@
 # PRD: Starter Nx + Angular + NestJS + PostgreSQL + Capacitor
 
-Oct 9, 2026 · @Michał Zawiślak · wersja 4: wyniki kroków 1–2
+Oct 9, 2026 · @Michał Zawiślak · wersja 5: wyniki kroków 1–3
 
 ## 1. Cel i zakres
 
@@ -118,8 +118,9 @@ AGENTS.md  .claude/skills/  # kontekst dla narzędzi AI (sekcja 10)
 | `type:data-access` | `type:data-access`, `type:util`, `type:contracts` |
 | `type:util` | `type:util`, `type:contracts` |
 | `type:contracts` | tylko `type:contracts` |
+| `type:e2e` | `type:contracts` |
 
-Przypisanie typów: `apps/*` mają `type:app`; `libs/shared/contracts` ma `type:contracts`; `libs/web/core/*` mają `type:core`; `libs/web/ui` ma `type:ui`; `libs/web/feature-*`, `libs/api/auth` i `libs/api/users` mają `type:feature`; `libs/api/database` ma `type:data-access`; `libs/api/common` ma `type:util`. Na potrzeby backendu `type:feature` może importować także `type:data-access` i `type:util`.
+Przypisanie typów: `apps/*` mają `type:app`; `libs/shared/contracts` ma `type:contracts`; `libs/web/core/*` mają `type:core`; `libs/web/ui` ma `type:ui`; `libs/web/feature-*`, `libs/api/auth` i `libs/api/users` mają `type:feature`; `libs/api/database` ma `type:data-access`; `libs/api/common` ma `type:util`. Na potrzeby backendu `type:feature` może importować także `type:feature`, `type:data-access` i `type:util` (np. `auth` korzysta z `users`); w części web `type:feature` nie importuje innych `type:feature`. Projekty E2E mają `type:e2e`. Reguły są zapisane w `eslint.config.mjs` w katalogu głównym.
 
 **Dodatkowe zasady**
 
@@ -551,6 +552,15 @@ nx g @nx/nest:lib libs/api/users
 ```
 
 Dodaj tagi do każdego projektu i reguły granic z sekcji 4, regułę `no-restricted-imports` dla `@capacitor/*` i `no-restricted-globals` z FE-26. Dodaj lokalne `AGENTS.md` w `libs/shared/contracts` i `libs/web/core/platform`.
+
+Uwagi z wykonania kroku 3:
+
+- Biblioteki mają aliasy `@starter/<grupa>/<nazwa>` (np. `@starter/web/core/platform`) i nazwy projektów `<grupa>-<nazwa>` (np. `web-core-platform`). Przykładowe komponenty z generatorów usunięte; biblioteki to puste szkielety do wypełnienia w krokach 4–8.
+- Biblioteki Angular testuje `vitest-analog`, bo `vitest-angular` wymaga w Nx 23.3 bibliotek budowalnych; AnalogJS podniesiony do 2.8 (ADR-0012).
+- Blokady `@capacitor/*` i globali przeglądarki obowiązują w całym repozytorium; wyłącza je tylko `eslint.config.mjs` w `libs/web/core/platform` (globale także w `apps/web-e2e`, gdzie kod `page.evaluate()` działa w przeglądarce). Nowe biblioteki są więc chronione bez dodatkowej konfiguracji.
+- Kolejność importów QA-6 wymusza `eslint-plugin-simple-import-sort`; zakaz `any` jest błędem (FE-7). Obie reguły wprowadzone już w tym kroku, żeby cały kod startera powstawał zgodnie z nimi.
+- Wygenerowane cele `lint` z przestarzałym executorem `@nx/eslint:lint` przeniesione na plugin `@nx/eslint/plugin` (`nx g @nx/eslint:convert-to-inferred`).
+- Weryfikacja: celowe naruszenia (web → api, ui → core, shared → web, `@capacitor/core` poza platformą, `localStorage` w `libs/web/ui`, `navigator` w `libs/api`, `any`) kończą `nx lint` błędem; `window` w `libs/web/core/platform` przechodzi.
 
 **Gotowe, gdy:** celowy import z `libs/api` w `libs/web` kończy `nx lint` błędem, a `nx graph` pokazuje strukturę z sekcji 4.
 

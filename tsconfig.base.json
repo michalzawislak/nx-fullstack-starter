@@ -14,7 +14,17 @@
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "strict": true,
-    "paths": {}
+    "paths": {
+      "@starter/shared/contracts": ["./libs/shared/contracts/src/index.ts"],
+      "@starter/web/core/platform": ["./libs/web/core/platform/src/index.ts"],
+      "@starter/web/core/http": ["./libs/web/core/http/src/index.ts"],
+      "@starter/web/core/auth": ["./libs/web/core/auth/src/index.ts"],
+      "@starter/web/ui": ["./libs/web/ui/src/index.ts"],
+      "@starter/api/database": ["./libs/api/database/src/index.ts"],
+      "@starter/api/common": ["./libs/api/common/src/index.ts"],
+      "@starter/api/auth": ["./libs/api/auth/src/index.ts"],
+      "@starter/api/users": ["./libs/api/users/src/index.ts"]
+    }
   },
   "exclude": ["node_modules", "tmp"]
 }
