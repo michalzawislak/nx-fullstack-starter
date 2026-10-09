@@ -1,4 +1,4 @@
-import * as z from 'zod';
+import * as z from 'zod/mini';
 
 export const EMAIL_MAX_LENGTH = 254;
 export const PASSWORD_MIN_LENGTH = 8;
@@ -6,14 +6,12 @@ export const PASSWORD_MIN_LENGTH = 8;
 export const PASSWORD_MAX_LENGTH = 128;
 
 /** Email trimmed and lower-cased before validation, so web forms and the API store the same value. */
-export const emailSchema = z
-  .string()
-  .trim()
-  .toLowerCase()
-  .pipe(z.email().max(EMAIL_MAX_LENGTH));
+export const emailSchema = z.pipe(
+  z.string().check(z.trim(), z.toLowerCase()),
+  z.email().check(z.maxLength(EMAIL_MAX_LENGTH)),
+);
 
 /** Password rules for new accounts. */
 export const newPasswordSchema = z
   .string()
-  .min(PASSWORD_MIN_LENGTH)
-  .max(PASSWORD_MAX_LENGTH);
+  .check(z.minLength(PASSWORD_MIN_LENGTH), z.maxLength(PASSWORD_MAX_LENGTH));

@@ -1,11 +1,11 @@
-import * as z from 'zod';
+import * as z from 'zod/mini';
 
 import { ApiException } from '../errors/api.exception';
 import { SchemaValidationPipe } from './schema-validation.pipe';
 
 const schema = z.object({
-  email: z.string().trim().toLowerCase().pipe(z.email()),
-  profile: z.object({ age: z.number().int().min(18) }),
+  email: z.pipe(z.string().check(z.trim(), z.toLowerCase()), z.email()),
+  profile: z.object({ age: z.int().check(z.gte(18)) }),
 });
 
 describe('SchemaValidationPipe', () => {

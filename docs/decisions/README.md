@@ -18,5 +18,6 @@ Każda decyzja z PRD (sekcje 2 i 12) ma tutaj zapis: kontekst, decyzję, odrzuco
 | [0012](0012-runnery-testow.md)       | Runnery testów Vitest w aplikacji i bibliotekach Angular | przyjęta |
 | [0013](0013-prisma-7.md)             | Prisma 7 jako ORM                                        | przyjęta |
 | [0014](0014-wlasne-komponenty-ui.md) | Własne minimalne komponenty UI                           | przyjęta |
+| [0015](0015-zod-mini.md)             | zod/mini w całym repozytorium                            | przyjęta |
 
 Otwarta decyzja o pluginie bezpiecznego magazynu dostanie ADR w kroku 8.

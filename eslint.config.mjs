@@ -81,15 +81,17 @@ const importGroups = [
 ];
 
 /** Platform access is allowed only in libs/web/core/platform (PRD FE-9, FE-26, QA-4). */
-/** `import { z } from 'zod'` defeats tree-shaking and pulls all of Zod, with every locale, into the web bundle. */
-const zodNamedImportRestriction = {
-  selector:
-    "ImportDeclaration[source.value='zod'] > ImportSpecifier[imported.name='z']",
-  message:
-    "Use `import * as z from 'zod'`: the named import adds about 350 kB to the web bundle.",
+/**
+ * Zod: always `zod/mini` (ADR-0015). Classic `zod` adds about 80 kB to the web bundle, and its
+ * named import `{ z }` defeats tree-shaking entirely.
+ */
+const classicZodRestriction = {
+  name: 'zod',
+  message: "Use `import * as z from 'zod/mini'` (ADR-0015).",
 };
 
 const platformRestrictedImports = {
+  paths: [classicZodRestriction],
   patterns: [
     {
       group: ['@capacitor/*'],
@@ -155,7 +157,6 @@ export default [
       // Secure by default everywhere; only libs/web/core/platform opts out.
       'no-restricted-imports': ['error', platformRestrictedImports],
       'no-restricted-globals': ['error', ...platformRestrictedGlobals],
-      'no-restricted-syntax': ['error', zodNamedImportRestriction],
     },
   },
 ];

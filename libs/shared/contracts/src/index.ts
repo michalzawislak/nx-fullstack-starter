@@ -1,3 +1,6 @@
+// Readable validation messages for zod/mini (side effect, must stay first).
+import './lib/zod-config';
+
 export * from './lib/api/api-endpoints';
 export * from './lib/api/api-routes';
 export * from './lib/api/app-headers';

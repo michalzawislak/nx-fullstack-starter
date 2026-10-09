@@ -46,19 +46,19 @@ Jeśli wolumen bazy powstał przed krokiem 5, baza testowa `starter_test` nie is
 
 ## Wersje (nx report, 9 października 2026)
 
-| Pakiet     | Wersja            |
-| ---------- | ----------------- |
-| Node       | 24.21.0           |
-| npm        | 11.21.0           |
-| Nx         | 23.3.0            |
-| Angular    | 22.2.2 (ADR-0009) |
-| TypeScript | 6.0.3             |
-| Vitest     | 4.1.x             |
-| Playwright | 1.64.0            |
-| NestJS     | 11.2.7 (ADR-0010) |
-| PostgreSQL | 18 (Docker)       |
-| Prisma     | 7.10.0 (ADR-0013) |
-| Zod        | 4.6.5             |
+| Pakiet     | Wersja                       |
+| ---------- | ---------------------------- |
+| Node       | 24.21.0                      |
+| npm        | 11.21.0                      |
+| Nx         | 23.3.0                       |
+| Angular    | 22.2.2 (ADR-0009)            |
+| TypeScript | 6.0.3                        |
+| Vitest     | 4.1.x                        |
+| Playwright | 1.64.0                       |
+| NestJS     | 11.2.7 (ADR-0010)            |
+| PostgreSQL | 18 (Docker)                  |
+| Prisma     | 7.10.0 (ADR-0013)            |
+| Zod        | 4.6.5, `zod/mini` (ADR-0015) |
 
 Aktualizacje wyłącznie przez `npx nx migrate latest`.
 

@@ -1,4 +1,4 @@
-import * as z from 'zod';
+import * as z from 'zod/mini';
 
 /** Headers sent by every client request (FE-13, CON-6). */
 export const APP_HEADERS = {
@@ -15,7 +15,9 @@ export type AppPlatform = z.infer<typeof appPlatformSchema>;
 /** Application version in `major.minor.patch` form. */
 export const appVersionSchema = z
   .string()
-  .regex(/^\d+\.\d+\.\d+$/, 'Expected a version in major.minor.patch form');
+  .check(
+    z.regex(/^\d+\.\d+\.\d+$/, 'Expected a version in major.minor.patch form'),
+  );
 
 export type AppVersion = z.infer<typeof appVersionSchema>;
 

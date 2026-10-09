@@ -1,18 +1,18 @@
-import * as z from 'zod';
+import * as z from 'zod/mini';
 
 import { errorCodeForStatus, errorCodeSchema } from './error-code';
 
 /** Shape of every API error response (PRD section 8.1). */
 export const apiErrorSchema = z.object({
-  statusCode: z.number().int().min(400).max(599),
+  statusCode: z.int().check(z.gte(400), z.lte(599)),
   errorCode: errorCodeSchema,
   message: z.string(),
-  details: z.record(z.string(), z.array(z.string())).optional(),
+  details: z.optional(z.record(z.string(), z.array(z.string()))),
 });
 
 export type ApiError = z.infer<typeof apiErrorSchema>;
 
-const apiErrorWithAnyCodeSchema = apiErrorSchema.extend({
+const apiErrorWithAnyCodeSchema = z.extend(apiErrorSchema, {
   errorCode: z.string(),
 });
 

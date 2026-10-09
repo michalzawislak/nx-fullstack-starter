@@ -1,4 +1,4 @@
-import * as z from 'zod';
+import * as z from 'zod/mini';
 
 import { emailSchema, PASSWORD_MAX_LENGTH } from './credentials';
 
@@ -8,7 +8,7 @@ import { emailSchema, PASSWORD_MAX_LENGTH } from './credentials';
  */
 export const loginRequestSchema = z.object({
   email: emailSchema,
-  password: z.string().min(1).max(PASSWORD_MAX_LENGTH),
+  password: z.string().check(z.minLength(1), z.maxLength(PASSWORD_MAX_LENGTH)),
 });
 
 export type LoginRequest = z.infer<typeof loginRequestSchema>;

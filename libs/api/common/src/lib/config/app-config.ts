@@ -1,4 +1,4 @@
-import * as z from 'zod';
+import * as z from 'zod/mini';
 
 import {
   type AppPlatform,
@@ -13,31 +13,44 @@ const DEFAULT_CORS_ORIGINS = [
   'https://localhost',
 ];
 
-const commaSeparatedListSchema = z
-  .string()
-  .transform((value) =>
-    value
-      .split(',')
-      .map((item) => item.trim())
-      .filter((item) => item.length > 0),
-  )
-  .pipe(z.array(z.string().min(1)).min(1));
+/** Every app version is supported unless MIN_APP_VERSION_<PLATFORM> says otherwise. */
+const NO_MINIMUM_VERSION = '0.0.0';
+
+/** Environment variables are strings: coerce to an integer within bounds. */
+const integerVariable = (minimum: number, maximum = Number.MAX_SAFE_INTEGER) =>
+  z.pipe(z.coerce.number(), z.int().check(z.gte(minimum), z.lte(maximum)));
+
+const commaSeparatedListSchema = z.pipe(
+  z.pipe(
+    z.string(),
+    z.transform((value) =>
+      value
+        .split(',')
+        .map((item) => item.trim())
+        .filter((item) => item.length > 0),
+    ),
+  ),
+  z.array(z.string().check(z.minLength(1))).check(z.minLength(1)),
+);
 
 /** Every environment variable the API reads (BE-12, BE-13). Keep in sync with .env.example. */
 export const environmentSchema = z.object({
-  NODE_ENV: z
-    .enum(['development', 'test', 'production'])
-    .default('development'),
-  PORT: z.coerce.number().int().min(1).max(65_535).default(3000),
+  NODE_ENV: z._default(
+    z.enum(['development', 'test', 'production']),
+    'development',
+  ),
+  PORT: z._default(integerVariable(1, 65_535), 3000),
   DATABASE_URL: z.url({ protocol: /^postgres(ql)?$/ }),
-  JWT_ACCESS_SECRET: z.string().min(32, 'Use at least 32 random characters'),
-  JWT_ACCESS_TTL_SECONDS: z.coerce.number().int().positive().default(900),
-  REFRESH_TOKEN_TTL_DAYS: z.coerce.number().int().positive().default(30),
-  CORS_ORIGINS: commaSeparatedListSchema.default(DEFAULT_CORS_ORIGINS),
-  AUTH_RATE_LIMIT_PER_MINUTE: z.coerce.number().int().positive().default(20),
-  MIN_APP_VERSION_WEB: appVersionSchema.default('0.0.0'),
-  MIN_APP_VERSION_IOS: appVersionSchema.default('0.0.0'),
-  MIN_APP_VERSION_ANDROID: appVersionSchema.default('0.0.0'),
+  JWT_ACCESS_SECRET: z
+    .string()
+    .check(z.minLength(32, 'Use at least 32 random characters')),
+  JWT_ACCESS_TTL_SECONDS: z._default(integerVariable(1), 900),
+  REFRESH_TOKEN_TTL_DAYS: z._default(integerVariable(1), 30),
+  CORS_ORIGINS: z._default(commaSeparatedListSchema, DEFAULT_CORS_ORIGINS),
+  AUTH_RATE_LIMIT_PER_MINUTE: z._default(integerVariable(1), 20),
+  MIN_APP_VERSION_WEB: z.optional(appVersionSchema),
+  MIN_APP_VERSION_IOS: z.optional(appVersionSchema),
+  MIN_APP_VERSION_ANDROID: z.optional(appVersionSchema),
 });
 
 export interface AppConfig {
@@ -78,9 +91,9 @@ export function loadAppConfig(
 
   const variables = result.data;
   const minimumAppVersions: Record<AppPlatform, AppVersion> = {
-    web: variables.MIN_APP_VERSION_WEB,
-    ios: variables.MIN_APP_VERSION_IOS,
-    android: variables.MIN_APP_VERSION_ANDROID,
+    web: variables.MIN_APP_VERSION_WEB ?? NO_MINIMUM_VERSION,
+    ios: variables.MIN_APP_VERSION_IOS ?? NO_MINIMUM_VERSION,
+    android: variables.MIN_APP_VERSION_ANDROID ?? NO_MINIMUM_VERSION,
   };
 
   return {

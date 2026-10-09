@@ -3,6 +3,8 @@ import { inject, Injectable } from '@angular/core';
 
 import { map, type Observable } from 'rxjs';
 
+import * as z from 'zod/mini';
+
 import {
   type EndpointContract,
   type EndpointRequest,
@@ -50,7 +52,7 @@ export class ApiClient {
         map(
           (response) =>
             (endpoint.response
-              ? endpoint.response.parse(response)
+              ? z.parse(endpoint.response, response)
               : undefined) as EndpointResponse<TEndpoint>,
         ),
       );

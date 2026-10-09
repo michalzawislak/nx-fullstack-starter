@@ -8,7 +8,7 @@ applyTo: 'libs/shared/contracts/**'
 
 The single source of truth for the API contract (PRD section 8). Both `apps/web` and `apps/api` import from here; nothing here imports from them.
 
-- Plain TypeScript and Zod only. Never import Angular, NestJS, RxJS or any `@starter/web/*` / `@starter/api/*` library (`scope:shared`, `type:contracts`).
+- Plain TypeScript and `zod/mini` only (ADR-0015): `z.string().check(z.minLength(1))`, `z.optional(schema)`, `z.pipe(a, b)`, `z.extend(object, shape)`, `z.int().check(z.positive())`. Readable messages come from `src/lib/zod-config.ts`, imported first by `src/index.ts`. Never import classic `zod`, Angular, NestJS, RxJS or any `@starter/web/*` / `@starter/api/*` library (`scope:shared`, `type:contracts`).
 - One file per endpoint group, named `<area>/<name>.contract.ts` (for example `auth/login.contract.ts`): request schema, response schema and the inferred types exported next to each other.
 - Derive types with `z.infer<typeof schema>`; never write a DTO interface by hand that duplicates a schema.
 - Paths: `API_ROUTES` holds route segments for NestJS decorators, `API_PATHS` the full paths for clients (CON-3). Never hard-code a path string elsewhere.

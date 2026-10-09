@@ -1,6 +1,6 @@
 # PRD: Starter Nx + Angular + NestJS + PostgreSQL + Capacitor
 
-Oct 9, 2026 · @Michał Zawiślak · wersja 9: wyniki kroków 1–7
+Oct 9, 2026 · @Michał Zawiślak · wersja 10: wyniki kroków 1–7 i zod/mini
 
 ## 1. Cel i zakres
 
@@ -62,6 +62,7 @@ Wersje sprawdzone 9 października 2026 w oficjalnych źródłach i potwierdzone 
 | [Capacitor](https://capacitorjs.com/docs/main/reference/support-policy) | 8.x | Jedyna aktywnie rozwijana linia. Wymaga Xcode 26+, Android Studio 2025.2.1+; aplikacje działają od iOS 15 i Androida 7 (API 24). |
 | [PostgreSQL](https://www.postgresql.org/support/versioning/) | 18 (18.6) | Wspierany do listopada 2030. Wersja 19 jest w becie. |
 | [Prisma ORM](https://github.com/prisma/prisma/releases) | 7.10.0 | Wybrana w kroku 5 (ADR-0013). Tag `latest` w npm wskazuje już 8.0.0-rc.22, więc wersja jest przypięta jawnie. Wersja 8 wciąż łamie API. |
+| [Zod](https://zod.dev/packages/mini) | 4.6.5, wariant `zod/mini` | Jeden wariant w całym repozytorium (ADR-0015); klasyczny `zod` blokuje lint. |
 | Testy | Vitest | Jeden runner dla frontendu i backendu. |
 | Lint | ESLint z regułą granic modułów Nx | Pilnuje zależności między bibliotekami (sekcja 4). |
 
@@ -322,21 +323,21 @@ Jedno źródło prawdy: schemat Zod w `libs/shared/contracts`. Z niego powstaje 
 
 ```ts
 // libs/shared/contracts/src/lib/auth/login.contract.ts
-import { z } from 'zod';
+import * as z from 'zod/mini'; // ADR-0015: zawsze zod/mini
 
 import { emailSchema, PASSWORD_MAX_LENGTH } from './credentials';
 
 export const loginRequestSchema = z.object({
   email: emailSchema, // trim + toLowerCase, potem walidacja formatu (max 254 znaki)
-  password: z.string().min(1).max(PASSWORD_MAX_LENGTH), // reguła 8–128 znaków dotyczy tylko nowych haseł
+  password: z.string().check(z.minLength(1), z.maxLength(PASSWORD_MAX_LENGTH)), // reguła 8–128 znaków dotyczy tylko nowych haseł
 });
 
 export type LoginRequest = z.infer<typeof loginRequestSchema>;
 
 export const tokenPairSchema = z.object({
-  accessToken: z.string(),
-  refreshToken: z.string().optional(),
-  expiresIn: z.number().int().positive(),
+  accessToken: z.string().check(z.minLength(1)),
+  refreshToken: z.optional(z.string().check(z.minLength(1))),
+  expiresIn: z.int().check(z.positive()),
 });
 
 export type TokenPair = z.infer<typeof tokenPairSchema>;
@@ -423,7 +424,7 @@ Kompilacja natywna i publikacja w sklepach są poza zakresem. README opisuje, ja
 
 ### 9.4 Wydajność
 
-- **QA-8.** Budżet początkowego bundla JavaScript: ostrzeżenie od 300 kB, błąd od 500 kB (rozmiar przed kompresją).
+- **QA-8.** Budżet początkowego bundla JavaScript: ostrzeżenie od 300 kB, błąd od 500 kB (rozmiar przed kompresją). Stan po kroku 7: 406 kB, z czego Angular (core, router, common z HTTP) ponad 390 kB przed minifikacją wspólnych części; ostrzeżenie jest oczekiwane, błąd chroni przed wzrostem (ADR-0015).
 - **QA-9.** Cele Core Web Vitals dla wersji web na profilu mobilnym: LCP poniżej 2,5 s, INP poniżej 200 ms, CLS poniżej 0,1.
 - **QA-10.** Listy dłuższe niż 50 elementów korzystają z wirtualizacji.
 
@@ -643,6 +644,7 @@ Uwagi z wykonania kroku 7:
 - **E2E.** Playwright uruchamia API i web jako `webServer`; projekty `mobile` (Pixel 7) i `desktop` (1280 × 800). 16 przebiegów: 7 scenariuszy w obu projektach (rejestracja, sesja po przeładowaniu, wylogowanie i ochrona tras, błędne hasło i powrót na żądaną stronę, walidacja bez wywołania API, cele dotykowe ≥ 44 px, baner offline) i po jednym scenariuszu układu nawigacji na projekt (tagi `@mobile` i `@desktop`). Zmienna `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` pozwala użyć Chromium zainstalowanego poza Playwrightem.
 - **Testy jednostkowe.** 29 nowych testów (UI, ekrany, aplikacja); pokrycie linii: ui 100%, feature-auth 100%, feature-home 93%.
 - **Rozmiar bundla.** Bundle początkowy ma 471 kB (126 kB po kompresji): `@angular/core` 201 kB, `@angular/router` 97 kB, `@angular/common` z HTTP 97 kB, Zod 116 kB, kod startera około 15 kB. Formularze (73 kB) są tylko w leniwym chunku ekranów logowania. Próg ostrzeżenia 300 kB z QA-8 jest dla Angulara 22 z routerem i HTTP nieosiągalny; do błędu (500 kB) zostało 29 kB (ryzyko R9).
+- **Po kroku 7: `zod/mini` (ADR-0015).** Kontrakt, konfiguracja API i testy przepisane na `zod/mini`; komunikaty z `z.config(en())`. Bundle początkowy 406 kB (111 kB po kompresji), Zod 38 kB zamiast 116 kB; do progu błędu zostaje 94 kB. Zachowanie bez zmian: 79 testów kontraktu, 27 testów integracyjnych i 16 przebiegów E2E przechodzi.
 
 ### Krok 8. Capacitor
 
@@ -698,7 +700,7 @@ Jedna kwestia nie padła w dotychczasowych ustaleniach. Dokument przyjmuje dla n
 | R5 | Prisma 8 zmienia API | Migracja ORM w przyszłości | Dostęp do bazy tylko przez `libs/api/database` |
 | R6 | Odrzucenie przez Apple z powodu wytycznej 4.2 | Opóźnienie publikacji konkretnej aplikacji | Wymagania MOB-5 do MOB-11 i co najmniej jedna funkcja natywna w każdej aplikacji budowanej na starterze |
 | R7 | Wydajność WebView na słabszych Androidach | Wolne listy i animacje | Budżet bundla, wirtualizacja list, test na urządzeniu ze średniej półki w liście kontrolnej |
-| R9 | Bundle początkowy po kroku 7: 471 kB przy progu błędu 500 kB (QA-8); sam framework to ponad 390 kB, Zod 116 kB | Każda zmiana w bundlu początkowym może przerwać build | Decyzja po kroku 7: `zod/mini` w kontrakcie (około −80 kB) albo budżet dopasowany do zmierzonej bazy frameworka (wymaga ADR) |
+| R9 | Bundle początkowy 406 kB przy progu błędu 500 kB (QA-8) po przejściu na `zod/mini` (ADR-0015); framework to większość rozmiaru | Duża zależność w bundlu początkowym może przerwać build | Nowe funkcje jako leniwe biblioteki `feature-*`; każda zależność w bundlu początkowym wymaga uzasadnienia; przy zbliżeniu do 500 kB decyzja o budżecie w nowym ADR |
 | R8 | Narzędzia AI szybko zmieniają pliki, które czytają (tabela w sekcji 10.1) | Któreś narzędzie przestaje widzieć instrukcje lub skille | Jedno źródło i generator: zmiana dotyczy tylko `tools/ai/sync.mts`; test w trzech narzędziach w liście kontrolnej kroku 9 |
 
 ### Kiedy wrócić do decyzji o Capacitorze

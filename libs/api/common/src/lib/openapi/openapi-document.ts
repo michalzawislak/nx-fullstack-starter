@@ -1,4 +1,4 @@
-import * as z from 'zod';
+import * as z from 'zod/mini';
 
 import {
   API_ENDPOINTS,
@@ -35,7 +35,10 @@ export interface OpenApiDocument {
   };
 }
 
-const toSchema = (schema: z.ZodType, io: 'input' | 'output'): JsonSchema =>
+const toSchema = (
+  schema: z.core.$ZodType,
+  io: 'input' | 'output',
+): JsonSchema =>
   z.toJSONSchema(schema, {
     target: 'openapi-3.0',
     io,

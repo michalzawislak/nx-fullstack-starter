@@ -9,6 +9,12 @@ export default [
       'no-restricted-imports': [
         'error',
         {
+          paths: [
+            {
+              name: 'zod',
+              message: "Use `import * as z from 'zod/mini'` (ADR-0015).",
+            },
+          ],
           patterns: [
             {
               group: [

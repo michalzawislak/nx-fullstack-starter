@@ -1,4 +1,4 @@
-import * as z from 'zod';
+import * as z from 'zod/mini';
 
 /** Machine-readable error codes (PRD section 8.1). Clients react to these, never to messages (FE-15). */
 export const ERROR_CODES = [

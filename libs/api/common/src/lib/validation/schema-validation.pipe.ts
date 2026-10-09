@@ -1,6 +1,6 @@
 import { Injectable, type PipeTransform } from '@nestjs/common';
 
-import type * as z from 'zod';
+import type * as z from 'zod/mini';
 
 import { ApiException } from '../errors/api.exception';
 
@@ -14,7 +14,7 @@ type ValidationDetails = Record<string, string[]>;
  * StandardSchemaValidationPipe of NestJS 12 and can be replaced by it after the upgrade.
  */
 @Injectable()
-export class SchemaValidationPipe<TSchema extends z.ZodType>
+export class SchemaValidationPipe<TSchema extends z.core.$ZodType>
   implements PipeTransform<unknown, Promise<z.output<TSchema>>>
 {
   constructor(private readonly schema: TSchema) {}

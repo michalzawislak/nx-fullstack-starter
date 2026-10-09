@@ -12,7 +12,12 @@ The contract in `libs/shared/contracts` is the single source of truth (PRD secti
 1. Create or extend `src/lib/<area>/<name>.contract.ts` with the request and response schemas and their inferred types:
 
    ```ts
-   export const createNoteRequestSchema = z.object({ title: z.string().trim().min(1).max(200) });
+   import * as z from 'zod/mini'; // never classic 'zod' (ADR-0015)
+
+   export const createNoteRequestSchema = z.object({
+     title: z.string().check(z.trim(), z.minLength(1), z.maxLength(200)),
+     pinned: z.optional(z.boolean()),
+   });
    export type CreateNoteRequest = z.infer<typeof createNoteRequestSchema>;
    ```
 
