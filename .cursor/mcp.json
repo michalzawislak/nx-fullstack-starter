@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "nx": {
+      "command": "npx",
+      "args": [
+        "nx",
+        "mcp"
+      ]
+    },
+    "angular-cli": {
+      "command": "npx",
+      "args": [
+        "ng",
+        "mcp"
+      ]
+    }
+  }
+}

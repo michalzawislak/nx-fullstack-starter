@@ -1,0 +1,14 @@
+{
+  "$comment": "Source of truth for MCP servers. Run `npm run ai:sync` after editing. Claude Code gets the Nx MCP server from the Nx plugin (.claude/settings.json), so `nx` is not generated for it.",
+  "servers": {
+    "nx": {
+      "command": "npx",
+      "args": ["nx", "mcp"],
+      "tools": ["cursor", "vscode"]
+    },
+    "angular-cli": {
+      "command": "npx",
+      "args": ["ng", "mcp"]
+    }
+  }
+}

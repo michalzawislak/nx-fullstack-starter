@@ -1,0 +1,20 @@
+{
+  "servers": {
+    "nx": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "nx",
+        "mcp"
+      ]
+    },
+    "angular-cli": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "ng",
+        "mcp"
+      ]
+    }
+  }
+}
