@@ -1,6 +1,6 @@
 # PRD: Starter Nx + Angular + NestJS + PostgreSQL + Capacitor
 
-Oct 9, 2026 · @Michał Zawiślak · wersja 5: wyniki kroków 1–3
+Oct 9, 2026 · @Michał Zawiślak · wersja 6: wyniki kroków 1–4
 
 ## 1. Cel i zakres
 
@@ -322,9 +322,11 @@ Jedno źródło prawdy: schemat Zod w `libs/shared/contracts`. Z niego powstaje 
 // libs/shared/contracts/src/lib/auth/login.contract.ts
 import { z } from 'zod';
 
+import { emailSchema, PASSWORD_MAX_LENGTH } from './credentials';
+
 export const loginRequestSchema = z.object({
-  email: z.email(),
-  password: z.string().min(8),
+  email: emailSchema, // trim + toLowerCase, potem walidacja formatu (max 254 znaki)
+  password: z.string().min(1).max(PASSWORD_MAX_LENGTH), // reguła 8–128 znaków dotyczy tylko nowych haseł
 });
 
 export type LoginRequest = z.infer<typeof loginRequestSchema>;
@@ -340,7 +342,9 @@ export type TokenPair = z.infer<typeof tokenPairSchema>;
 
 - **CON-1.** Każdy punkt końcowy ma w `contracts` schemat żądania i odpowiedzi. Kontroler i klient API importują te same typy.
 - **CON-2.** Backend waliduje dane wejściowe schematem. Na NestJS 12 natywnie (`@Body({ schema })` z `StandardSchemaValidationPipe`), na NestJS 11 przez własny pipe w `libs/api/common` o tym samym zachowaniu.
-- **CON-3.** Ścieżki punktów końcowych są stałymi w `contracts`, używanymi po obu stronach.
+- **CON-3.** Ścieżki punktów końcowych są stałymi w `contracts`, używanymi po obu stronach: `API_ROUTES` (segmenty dla `@Controller()` i `@Post()` w NestJS) i `API_PATHS` (pełne ścieżki dla klienta).
+
+Zrealizowane w kroku 4: `API_ENDPOINTS` łączy dla każdego punktu końcowego metodę, ścieżkę, poziom dostępu oraz schematy żądania i odpowiedzi (`defineEndpoint`), a typy `EndpointRequest` i `EndpointResponse` wyprowadzają z nich typy dla klienta API z kroku 6. Hasło przy logowaniu ma tylko limit długości, żeby zmiana reguł dla nowych haseł nie blokowała istniejących kont; górny limit 128 znaków chroni haszowanie Argon2id przed nadużyciem.
 
 ### 8.1 Format błędu
 
@@ -358,13 +362,18 @@ export interface ApiError {
 | `errorCode` | Status | Znaczenie |
 | --- | --- | --- |
 | `VALIDATION_FAILED` | 400 | Błędy pól w `details` |
+| `UNAUTHENTICATED` | 401 | Brak lub nieprawidłowy access token |
 | `INVALID_CREDENTIALS` | 401 | Błędny email lub hasło |
 | `TOKEN_EXPIRED` | 401 | Access token wygasł, klient odświeża |
 | `REFRESH_TOKEN_INVALID` | 401 | Wymagane ponowne logowanie |
+| `FORBIDDEN` | 403 | Brak uprawnień do zasobu |
+| `NOT_FOUND` | 404 | Zasób lub trasa nie istnieje |
 | `EMAIL_TAKEN` | 409 | Konto już istnieje |
 | `APP_VERSION_UNSUPPORTED` | 426 | Wymagana aktualizacja aplikacji |
 | `RATE_LIMITED` | 429 | Zbyt wiele żądań |
 | `INTERNAL_ERROR` | 500 | Błąd nieobsłużony, bez szczegółów w odpowiedzi |
+
+Kody `UNAUTHENTICATED`, `FORBIDDEN` i `NOT_FOUND` dodano w kroku 4: globalny filtr wyjątków musi mieć kod dla każdej odpowiedzi błędu, także dla żądania bez tokenu i nieistniejącej trasy. Klient zamienia każdą odpowiedź błędu na `ApiError` funkcją `parseApiError` z `contracts`: nieznany kod (dodany przez nowsze API) staje się `INTERNAL_ERROR` z zachowaniem statusu i komunikatu, a odpowiedź bez kształtu `ApiError` (np. strona błędu proxy) dostaje kod wyprowadzony ze statusu HTTP.
 
 ### 8.2 Wersjonowanie
 
@@ -569,6 +578,14 @@ Uwagi z wykonania kroku 3:
 Schematy i typy auth, format błędu, kody błędów i stałe ścieżek w `libs/shared/contracts`.
 
 **Gotowe, gdy:** testy schematów przechodzą, a biblioteka buduje się bez zależności od Angulara i NestJS.
+
+Uwagi z wykonania kroku 4:
+
+- Zod 4.6.5 jako zależność produkcyjna. Struktura: `api/` (ścieżki, nagłówki `X-App-Version` i `X-App-Platform`, `isVersionSupported`, rejestr endpointów), `errors/`, `auth/`, `users/`, `app/`, `health/`.
+- Izolację pilnuje reguła `no-restricted-imports` w `libs/shared/contracts/eslint.config.mjs` (zakaz `@angular/*`, `@nestjs/*`, `rxjs`, `@capacitor/*`, `@starter/web/*`, `@starter/api/*`), a `tsconfig.lib.json` nie ładuje typów Node. Cel `typecheck` sprawdza kod i testy, w tym asercje typów `expectTypeOf`.
+- 79 testów, pokrycie linii 100%; próg 80% z QA-2 jest ustawiony w konfiguracji Vitest tej biblioteki.
+- `GET /health` w API używa typu i ścieżki z kontraktu, a test sprawdza odpowiedź schematem.
+- Vite 8 rozwiązuje ścieżki z `tsconfig` natywnie (`resolve.tsconfigPaths`), więc plugin `vite-tsconfig-paths` z kroku 2 został usunięty. Plugin AnalogJS dostaje jawnie `tsconfig.spec.json`.
 
 ### Krok 5. API: baza, auth, błędy
 

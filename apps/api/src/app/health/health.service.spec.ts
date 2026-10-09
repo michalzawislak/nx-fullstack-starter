@@ -1,5 +1,7 @@
 import { Test } from '@nestjs/testing';
 
+import { healthStatusSchema } from '@starter/shared/contracts';
+
 import { HealthService } from './health.service';
 
 describe('HealthService', () => {
@@ -13,7 +15,7 @@ describe('HealthService', () => {
     healthService = moduleRef.get(HealthService);
   });
 
-  it('reports ok status with a non-negative uptime', () => {
+  it('reports ok status with whole seconds of uptime', () => {
     // Arrange
     vi.spyOn(process, 'uptime').mockReturnValue(42.7);
 
@@ -22,5 +24,13 @@ describe('HealthService', () => {
 
     // Assert
     expect(healthStatus).toEqual({ status: 'ok', uptimeSeconds: 42 });
+  });
+
+  it('returns a response that satisfies the shared contract', () => {
+    // Act
+    const result = healthStatusSchema.safeParse(healthService.getStatus());
+
+    // Assert
+    expect(result.success).toBe(true);
   });
 });

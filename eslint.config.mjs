@@ -68,6 +68,7 @@ const depConstraints = [
 /** Import order (PRD QA-6). Groups are separated by a blank line. */
 const importGroups = [
   ['^\\u0000'],
+  ['^node:'],
   ['^@angular/(core|common)(/.*)?$'],
   ['^rxjs(/.*)?$'],
   ['^@angular/'],

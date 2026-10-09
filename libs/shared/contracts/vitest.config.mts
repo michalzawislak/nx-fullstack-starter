@@ -1,10 +1,11 @@
-import tsconfigPaths from 'vite-tsconfig-paths';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig(() => ({
   root: import.meta.dirname,
   cacheDir: '../../../node_modules/.vite/libs/shared/contracts',
-  plugins: [tsconfigPaths({ root: '../../../' })],
+  resolve: {
+    tsconfigPaths: true,
+  },
   test: {
     name: 'shared-contracts',
     watch: false,
@@ -16,6 +17,10 @@ export default defineConfig(() => ({
     coverage: {
       reportsDirectory: '../../../coverage/libs/shared/contracts',
       provider: 'v8' as const,
+      include: ['src/**/*.ts'],
+      exclude: ['src/**/*.spec.ts', 'src/index.ts'],
+      // PRD QA-2: at least 80% of lines in libs/shared/*.
+      thresholds: { lines: 80 },
     },
   },
 }));

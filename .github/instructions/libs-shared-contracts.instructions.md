@@ -11,6 +11,9 @@ The single source of truth for the API contract (PRD section 8). Both `apps/web`
 - Plain TypeScript and Zod only. Never import Angular, NestJS, RxJS or any `@starter/web/*` / `@starter/api/*` library (`scope:shared`, `type:contracts`).
 - One file per endpoint group, named `<area>/<name>.contract.ts` (for example `auth/login.contract.ts`): request schema, response schema and the inferred types exported next to each other.
 - Derive types with `z.infer<typeof schema>`; never write a DTO interface by hand that duplicates a schema.
-- Endpoint paths are exported constants (CON-3), error codes are a single `ErrorCode` union with the `ApiError` shape (PRD section 8.1).
+- Paths: `API_ROUTES` holds route segments for NestJS decorators, `API_PATHS` the full paths for clients (CON-3). Never hard-code a path string elsewhere.
+- Every endpoint is registered in `API_ENDPOINTS` (`api/api-endpoints.ts`) with `defineEndpoint({ method, path, access, request, response })`. Adding an endpoint means: schemas in `<area>/<name>.contract.ts`, an entry in `API_ENDPOINTS`, a row in the PRD table (section 7.1) and the table test in `api-endpoints.spec.ts`.
+- Errors: `ErrorCode` and `ERROR_CODE_STATUS` in `errors/error-code.ts`, the `ApiError` shape and `parseApiError` in `errors/api-error.ts` (PRD section 8.1). A new error code needs a status and a test.
 - Within `/v1` only additive changes: new optional fields, new endpoints (CON-5). A breaking change needs a new version prefix and an ADR.
-- Every schema has tests with valid and invalid data (`*.spec.ts`, Arrange-Act-Assert).
+- Every schema has tests with valid and invalid data (`*.spec.ts`, Arrange-Act-Assert). Coverage threshold: 80% of lines (QA-2).
+- Verify with `npx nx run-many -t lint typecheck test -p shared-contracts`; `typecheck` also checks the `expectTypeOf` assertions.

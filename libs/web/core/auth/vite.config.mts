@@ -1,11 +1,17 @@
+import { join } from 'node:path';
+
 import angular from '@analogjs/vite-plugin-angular';
 import { defineConfig } from 'vite';
-import tsconfigPaths from 'vite-tsconfig-paths';
 
 export default defineConfig(() => ({
   root: import.meta.dirname,
   cacheDir: '../../../../node_modules/.vite/libs/web/core/auth',
-  plugins: [angular(), tsconfigPaths({ root: '../../../../' })],
+  plugins: [
+    angular({ tsconfig: join(import.meta.dirname, 'tsconfig.spec.json') }),
+  ],
+  resolve: {
+    tsconfigPaths: true,
+  },
   test: {
     name: 'web-core-auth',
     watch: false,

@@ -13,7 +13,7 @@ PRD wymaga Vitest w całym repozytorium. W Nx 23.3 natywny runner Angulara (`vit
 - Biblioteki Angular (`libs/web/*`): `vitest-analog` (plugin AnalogJS dla Vite), domyślny w `nx.json`.
 - Biblioteki i aplikacja NestJS oraz `libs/shared/contracts`: zwykły Vitest.
 - AnalogJS w wersji `~2.8.0`. Nx 23.3 instaluje `~2.6.0`, który na Angularze 22.2 kończy start testów błędem `cache.has is not a function`.
-- Ścieżki `@starter/*` w testach rozwiązuje `vite-tsconfig-paths` (pluginy `nxViteTsPaths` i `nxCopyAssetsPlugin` są w Nx 23.3 przestarzałe i znikną w Nx 24).
+- Ścieżki `@starter/*` w testach rozwiązuje natywna opcja Vite 8 `resolve.tsconfigPaths: true` (pluginy `nxViteTsPaths` i `nxCopyAssetsPlugin` są w Nx 23.3 przestarzałe i znikną w Nx 24; plugin `vite-tsconfig-paths` jest zbędny). Plugin AnalogJS dostaje jawnie `tsconfig.spec.json`.
 
 ## Odrzucone opcje
 
