@@ -25,3 +25,7 @@ docs/prd
 
 # Generated Prisma client
 libs/api/database/src/generated
+
+# Native projects (Capacitor); formatted by Xcode and Android Studio
+/android
+/ios

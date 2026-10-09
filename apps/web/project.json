@@ -49,6 +49,34 @@
           "optimization": false,
           "extractLicenses": false,
           "sourceMap": true
+        },
+        "mobile": {
+          "outputPath": "dist/apps/web-mobile",
+          "budgets": [
+            {
+              "type": "initial",
+              "maximumWarning": "300kb",
+              "maximumError": "500kb"
+            },
+            {
+              "type": "anyComponentStyle",
+              "maximumWarning": "4kb",
+              "maximumError": "8kb"
+            }
+          ],
+          "outputHashing": "all",
+          "fileReplacements": [
+            {
+              "replace": "apps/web/src/environments/environment.ts",
+              "with": "apps/web/src/environments/environment.production.ts"
+            }
+          ]
+        },
+        "mobile-dev": {
+          "outputPath": "dist/apps/web-mobile",
+          "optimization": false,
+          "extractLicenses": false,
+          "sourceMap": true
         }
       }
     },
@@ -79,6 +107,41 @@
         "port": 4200,
         "staticFilePath": "dist/apps/web/browser",
         "spa": true
+      }
+    },
+    "cap-sync": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "defaultConfiguration": "release",
+      "options": {
+        "cwd": "{workspaceRoot}",
+        "command": "cap sync"
+      },
+      "configurations": {
+        "release": {},
+        "dev": {
+          "env": {
+            "CAPACITOR_DEV": "1"
+          }
+        }
+      }
+    },
+    "cap-run": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "cwd": "{workspaceRoot}",
+        "env": {
+          "CAPACITOR_DEV": "1"
+        }
+      },
+      "configurations": {
+        "ios": {
+          "command": "cap run ios --live-reload --host=localhost --port=4200"
+        },
+        "android": {
+          "command": "cap run android --live-reload --host=localhost --port=4200 --forwardPorts=4200:4200"
+        }
       }
     }
   }

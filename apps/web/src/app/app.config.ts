@@ -17,11 +17,16 @@ import {
   appVersionInterceptor,
   provideApiConfig,
 } from '@starter/web/core/http';
-import { providePlatform } from '@starter/web/core/platform';
+import {
+  detectAppPlatform,
+  provideNativeShell,
+  providePlatform,
+} from '@starter/web/core/platform';
 
 import { environment } from '../environments/environment';
 
 import { appRoutes } from './app.routes';
+import { resolveApiBaseUrl } from './resolve-api-base-url';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -38,8 +43,10 @@ export const appConfig: ApplicationConfig = {
       ]),
     ),
     providePlatform(),
+    // Back button, deep links, keyboard, status bar and splash screen on iOS and Android (PRD 6.4).
+    provideNativeShell(),
     provideApiConfig({
-      baseUrl: environment.apiBaseUrl,
+      baseUrl: resolveApiBaseUrl(environment, detectAppPlatform()),
       appVersion: environment.appVersion,
     }),
     provideAuth(),

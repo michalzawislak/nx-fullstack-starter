@@ -1,6 +1,6 @@
 # PRD: Starter Nx + Angular + NestJS + PostgreSQL + Capacitor
 
-Oct 9, 2026 · @Michał Zawiślak · wersja 10: wyniki kroków 1–7 i zod/mini
+Oct 9, 2026 · @Michał Zawiślak · wersja 11: wyniki kroków 1–8
 
 ## 1. Cel i zakres
 
@@ -235,7 +235,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 const config: CapacitorConfig = {
   appId: 'com.example.starter',
   appName: 'Starter',
-  webDir: 'dist/apps/web/browser',
+  webDir: 'dist/apps/web-mobile/browser',
 };
 
 export default config;
@@ -249,7 +249,11 @@ export default config;
 | `npm run cap:sync` | build mobilny, potem `npx cap sync` |
 | `npm run cap:ios` | sync, potem `npx cap open ios` |
 | `npm run cap:android` | sync, potem `npx cap open android` |
-| `npm run cap:dev` | live reload na urządzeniu z serwera deweloperskiego |
+| `npm run build:mobile:dev` | `nx build web --configuration=mobile-dev` (lokalne API) |
+| `npm run cap:sync:dev`, `cap:ios:dev`, `cap:android:dev` | jak wyżej, z buildem `mobile-dev` i `CAPACITOR_DEV=1` |
+| `npm run cap:dev:ios`, `cap:dev:android` | live reload na symulatorze lub emulatorze z serwera deweloperskiego |
+
+Zmienną `CAPACITOR_DEV=1` ustawiają targety Nx `web:cap-sync:dev` i `web:cap-run:*`, więc skrypty działają także na Windowsie. Tylko ona włącza w `capacitor.config.ts` ruch HTTP, mixed content i debugowanie WebView (MOB-13, ADR-0016).
 
 ### 6.3 Pluginy w starterze
 
@@ -665,6 +669,16 @@ Dodaj konfigurację builda `mobile`, implementacje natywne abstrakcji, obsługę
 
 **Gotowe, gdy:** aplikacja uruchamia się w symulatorze iOS i emulatorze Androida, a logowanie przetrwa zamknięcie i ponowne otwarcie aplikacji.
 
+Uwagi z wykonania kroku 8:
+
+- **Capacitor 8.5.3** z pluginami `@capacitor/app` 8.1.2, `network` 8.0.1, `preferences` 8.0.1, `keyboard` 8.0.6, `status-bar` 8.0.4, `splash-screen` 8.0.2 i `@aparajita/capacitor-secure-storage` 8.0.1 (ADR-0016). Projekt iOS używa Swift Package Manager, bez CocoaPods. Audyt zależności produkcyjnych: 0 podatności.
+- **Buildy.** Konfiguracja `mobile` (produkcyjne API, budżety jak w web) i `mobile-dev` (lokalne API, mapy źródeł), obie do `dist/apps/web-mobile`. `environment.ts` ma `apiBaseUrlOverrides.android` (`10.0.2.2`), a `detectAppPlatform()` wybiera adres przed startem Angulara. Bundle początkowy: 421 kB (115 kB po kompresji), czyli +14 kB za Capacitora.
+- **Platforma.** Natywne implementacje wszystkich tokenów oraz nowy token `SYSTEM_UI`. `NativeSecureStorage` używa Keychain z dostępem `whenUnlockedThisDeviceOnly`, bez iCloud. Czyści pozostałości po reinstalacji (znacznik w Preferences), a nieczytelny wpis traktuje jak brak wpisu. `fromPluginEvent()` usuwa natywne listenery po zakończeniu subskrypcji.
+- **Zachowania natywne (`provideNativeShell()`).** Przycisk wstecz (MOB-5), deep linki z linków `https` i własnego schematu (MOB-7), przewijanie aktywnego pola nad klawiaturę (MOB-8), pasek stanu zgodny z motywem i splash ukrywany po pierwszym renderze (MOB-9). Działa także w przeglądarce, gdzie zdarzenia nie występują.
+- **Bezpieczeństwo.** Ruch HTTP i debugowanie WebView tylko w synchronizacji deweloperskiej (MOB-13). `android:allowBackup="false"`. Nawigacja poza aplikację otwiera przeglądarkę systemową, bo `server.allowNavigation` jest puste (MOB-14). Wersja natywna (`MARKETING_VERSION`, `versionName`) to 0.1.0, zgodna z `appVersion`.
+- **Testy.** 38 testów biblioteki platformy (pokrycie linii 99%) z `vi.mock` pluginów, plus 2 testy wyboru adresu API. Domyślna pula `vmThreads` z AnalogJS losowo gubiła mocki między plikami, więc biblioteka używa puli `threads`.
+- **Skill** `add-platform-capability`; README ma sekcję o aplikacjach mobilnych (przygotowanie, uruchomienie, build do sklepu, deep linki, lista kontrolna na urządzeniu).
+
 ### Krok 9. CI, dokumentacja, lista kontrolna
 
 Pipeline z sekcji 9.3, README (wymagania środowiska, komendy, dodawanie pluginu, dodawanie modułu API, praca z Claude Code, Cursorem i Copilotem), `docs/architecture.md`, skill `architecture-review` i ręczna lista kontrolna dla urządzeń:
@@ -687,7 +701,7 @@ Jedna kwestia nie padła w dotychczasowych ustaleniach. Dokument przyjmuje dla n
 
 | Decyzja | Przyjęte domyślnie | Alternatywa | Rozstrzygnąć przed |
 | --- | --- | --- | --- |
-| Plugin bezpiecznego magazynu | Wybór w kroku 8 spośród pluginów zgodnych z Capacitorem 8 | Własny plugin natywny | Krok 8 |
+| Plugin bezpiecznego magazynu | Rozstrzygnięte w kroku 8: `@aparajita/capacitor-secure-storage` 8.0.1 (ADR-0016) | Własny plugin natywny | Zamknięte |
 
 ### Ryzyka
 

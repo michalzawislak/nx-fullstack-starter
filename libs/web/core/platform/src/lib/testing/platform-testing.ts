@@ -23,6 +23,7 @@ import {
   SECURE_STORAGE,
 } from '../storage/key-value-storage';
 import { MemoryKeyValueStorage } from '../storage/memory-key-value-storage';
+import { SYSTEM_UI, type SystemUi } from '../system-ui/system-ui';
 
 /** Controllable network status for tests. */
 export class FakeNetworkStatus implements NetworkStatus {
@@ -57,12 +58,35 @@ export class FakePlatformInfo implements PlatformInfo {
   }
 }
 
+/** Records what the native shell asked of the system UI. */
+export class FakeSystemUi implements SystemUi {
+  splashScreenHideCount = 0;
+  statusBarStyleCount = 0;
+  isKeepingFocusedFieldVisible = false;
+
+  async hideSplashScreen(): Promise<void> {
+    this.splashScreenHideCount += 1;
+  }
+
+  async applyStatusBarStyle(): Promise<void> {
+    this.statusBarStyleCount += 1;
+  }
+
+  keepFocusedFieldVisible(): () => void {
+    this.isKeepingFocusedFieldVisible = true;
+    return () => {
+      this.isKeepingFocusedFieldVisible = false;
+    };
+  }
+}
+
 export interface PlatformTestingHandles {
   readonly network: FakeNetworkStatus;
   readonly lifecycle: FakeAppLifecycle;
   readonly platformInfo: FakePlatformInfo;
   readonly keyValueStorage: MemoryKeyValueStorage;
   readonly secureStorage: MemoryKeyValueStorage;
+  readonly systemUi: FakeSystemUi;
 }
 
 /** In-memory implementations of every platform token (FE-11). Inspect or drive them through `handles`. */
@@ -75,6 +99,7 @@ export function providePlatformTesting(
     { provide: SECURE_STORAGE, useValue: handles.secureStorage },
     { provide: NETWORK_STATUS, useValue: handles.network },
     { provide: APP_LIFECYCLE, useValue: handles.lifecycle },
+    { provide: SYSTEM_UI, useValue: handles.systemUi },
   ]);
 }
 
@@ -85,5 +110,6 @@ export function createPlatformTestingHandles(): PlatformTestingHandles {
     platformInfo: new FakePlatformInfo(),
     keyValueStorage: new MemoryKeyValueStorage(),
     secureStorage: new MemoryKeyValueStorage(),
+    systemUi: new FakeSystemUi(),
   };
 }

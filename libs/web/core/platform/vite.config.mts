@@ -17,6 +17,8 @@ export default defineConfig(() => ({
     watch: false,
     globals: true,
     environment: 'jsdom',
+    // vmThreads (the AnalogJS default) shares modules between spec files, so vi.mock of Capacitor plugins leaks or gets lost.
+    pool: 'threads',
     include: ['{src,tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     setupFiles: ['src/test-setup.ts'],
     passWithNoTests: true,
