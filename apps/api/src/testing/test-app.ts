@@ -7,6 +7,7 @@ import { PrismaService } from '@starter/api/database';
 
 import { AppModule } from '../app/app.module';
 import { configureApp } from '../app/configure-app';
+import { assertTestDatabase } from './integration-environment';
 
 export interface TestApp {
   readonly app: INestApplication;
@@ -20,6 +21,7 @@ export interface TestApp {
 
 /** Starts the real AppModule with the production HTTP configuration (configureApp). */
 export async function createTestApp(): Promise<TestApp> {
+  assertTestDatabase(process.env['DATABASE_URL'] ?? '');
   const moduleRef = await Test.createTestingModule({
     imports: [AppModule],
   }).compile();
