@@ -1,6 +1,6 @@
 import { Injectable, type PipeTransform } from '@nestjs/common';
 
-import type { z } from 'zod';
+import type * as z from 'zod';
 
 import { ApiException } from '../errors/api.exception';
 

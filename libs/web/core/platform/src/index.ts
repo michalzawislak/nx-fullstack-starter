@@ -1,2 +1,7 @@
-// Public API of libs/web/core/platform. Filled in from step 4 on (PRD section 11).
-export {};
+export * from './lib/lifecycle/app-lifecycle';
+export * from './lib/network/network-status';
+export * from './lib/platform-info/platform-info';
+export * from './lib/provide-platform';
+export * from './lib/storage/key-value-storage';
+export * from './lib/storage/memory-key-value-storage';
+export * from './lib/testing/platform-testing';

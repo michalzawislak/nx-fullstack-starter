@@ -81,6 +81,14 @@ const importGroups = [
 ];
 
 /** Platform access is allowed only in libs/web/core/platform (PRD FE-9, FE-26, QA-4). */
+/** `import { z } from 'zod'` defeats tree-shaking and pulls all of Zod, with every locale, into the web bundle. */
+const zodNamedImportRestriction = {
+  selector:
+    "ImportDeclaration[source.value='zod'] > ImportSpecifier[imported.name='z']",
+  message:
+    "Use `import * as z from 'zod'`: the named import adds about 350 kB to the web bundle.",
+};
+
 const platformRestrictedImports = {
   patterns: [
     {
@@ -147,6 +155,7 @@ export default [
       // Secure by default everywhere; only libs/web/core/platform opts out.
       'no-restricted-imports': ['error', platformRestrictedImports],
       'no-restricted-globals': ['error', ...platformRestrictedGlobals],
+      'no-restricted-syntax': ['error', zodNamedImportRestriction],
     },
   },
 ];

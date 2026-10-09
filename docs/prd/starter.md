@@ -1,6 +1,6 @@
 # PRD: Starter Nx + Angular + NestJS + PostgreSQL + Capacitor
 
-Oct 9, 2026 · @Michał Zawiślak · wersja 7: wyniki kroków 1–5
+Oct 9, 2026 · @Michał Zawiślak · wersja 8: wyniki kroków 1–6
 
 ## 1. Cel i zakres
 
@@ -613,6 +613,15 @@ Abstrakcje platformy z implementacjami webowymi i testowymi, interceptory, stan 
 
 **Gotowe, gdy:** testy jednostkowe przechodzą, w tym scenariusz równoległych żądań przy wygasłym tokenie.
 
+Uwagi z wykonania kroku 6:
+
+- **Platforma (`libs/web/core/platform`).** Tokeny `KEY_VALUE_STORAGE`, `SECURE_STORAGE`, `NETWORK_STATUS`, `APP_LIFECYCLE`, `PLATFORM_INFO` z implementacjami webowymi (localStorage z obsługą wyjątków, pamięć dla sekretów, `navigator.onLine` z zdarzeniami, `visibilitychange`) i testowymi (`providePlatformTesting` z uchwytami do sterowania). Stan sieci i platformy to sygnały, cykl życia to strumień zdarzeń (`pause`, `resume`, `back-button`, `url-open`). Implementacje natywne dochodzą w kroku 8. Dostęp do przeglądarki przez `inject(DOCUMENT)`.
+- **HTTP (`libs/web/core/http`).** `provideApiConfig` odrzuca adres względny (FE-12). `ApiClient.request(API_ENDPOINTS.x.y, body)` bierze metodę, ścieżkę i typy z kontraktu i parsuje odpowiedź schematem. `appHeadersInterceptor` (FE-13) i `apiErrorInterceptor` (`ApiRequestError` z `errorCode` albo `NetworkError`, FE-15, FE-16) działają tylko dla adresów API; tokeny i nagłówki nie trafiają do innych hostów. `withCredentials` tylko dla `/v1/auth`.
+- **Sesja (`libs/web/core/auth`).** `SessionService` w sygnałach; access token tylko w pamięci, refresh token w ciasteczku (web) albo `SECURE_STORAGE` (native). `refresh()` jest pojedynczym lotem, a `authInterceptor` przy `TOKEN_EXPIRED` odświeża raz, wstrzymuje równoległe żądania i ponawia każde raz (FE-14). Sesję kończy tylko `REFRESH_TOKEN_INVALID`; błąd sieci przy starcie zostawia zapisany token i ponawia przywrócenie po odzyskaniu sieci (MOB-10). Wznowienie z tła odświeża wygasły token (MOB-6). Guardy `authGuard` (przekierowanie z `returnUrl`) i `guestGuard`; wszystkie `inject()` przed pierwszym `await`, bo później kontekst wstrzykiwania znika (błąd wykryty testem).
+- **Aplikacja.** `app.config.ts` rejestruje platformę, konfigurację API, sesję i interceptory w ustalonej kolejności; `environment.ts` i `environment.production.ts` (podmiana plików w konfiguracji produkcyjnej) z `apiBaseUrl` i `appVersion`.
+- **Testy.** 38 testów w bibliotekach web core (pokrycie linii 92–97%, próg 80% w konfiguracji Vitest), w tym trzy równoległe żądania z `TOKEN_EXPIRED` i dokładnie jedno odświeżenie. Sprawdzenie w Chromium: CORS z `credentials`, nagłówki `X-App-*`, ciasteczko `Secure; SameSite=Strict` ustawione przez API na porcie 3000 dla aplikacji na porcie 4200 i przywrócenie sesji po przeładowaniu strony.
+- **Rozmiar bundla.** Import `import { z } from 'zod'` wyłączał tree-shaking i dodawał wszystkie tłumaczenia Zoda: bundle początkowy miał 680 kB i budżet QA-8 przerwał build. Po zmianie na `import * as z from 'zod'` bundle ma 321 kB (85 kB po kompresji), z czego Zod 92 kB. Reguła lintu blokuje import nazwany. Bundle przekracza próg ostrzeżenia 300 kB o 21 kB (ryzyko R9).
+
 ### Krok 7. Web: UI i ekrany
 
 Szkielet aplikacji z dwoma wariantami nawigacji, tokeny SASS, safe areas, biblioteki `feature-auth` i `feature-home`, baner offline. Skill `add-web-feature`.
@@ -679,6 +688,7 @@ Dwie kwestie nie padły w dotychczasowych ustaleniach. Dokument przyjmuje dla ni
 | R5 | Prisma 8 zmienia API | Migracja ORM w przyszłości | Dostęp do bazy tylko przez `libs/api/database` |
 | R6 | Odrzucenie przez Apple z powodu wytycznej 4.2 | Opóźnienie publikacji konkretnej aplikacji | Wymagania MOB-5 do MOB-11 i co najmniej jedna funkcja natywna w każdej aplikacji budowanej na starterze |
 | R7 | Wydajność WebView na słabszych Androidach | Wolne listy i animacje | Budżet bundla, wirtualizacja list, test na urządzeniu ze średniej półki w liście kontrolnej |
+| R9 | Zod w wariancie klasycznym zajmuje 92 kB bundla początkowego; po kroku 6 bundle ma 321 kB przy progu ostrzeżenia 300 kB | Wolniejszy start na słabych urządzeniach, rosnące ostrzeżenie budżetu | Po kroku 7 zmierzyć ponownie; jeśli bundle zbliży się do 500 kB, przenieść schematy formularzy do leniwie ładowanych bibliotek albo przejść na `zod/mini` w kontrakcie (wymaga ADR) |
 | R8 | Narzędzia AI szybko zmieniają pliki, które czytają (tabela w sekcji 10.1) | Któreś narzędzie przestaje widzieć instrukcje lub skille | Jedno źródło i generator: zmiana dotyczy tylko `tools/ai/sync.mts`; test w trzech narzędziach w liście kontrolnej kroku 9 |
 
 ### Kiedy wrócić do decyzji o Capacitorze

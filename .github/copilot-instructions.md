@@ -5,7 +5,7 @@
 Full instructions: `AGENTS.md` in the repository root and in subdirectories.
 
 - Frontend and backend never import each other; they meet only in `libs/shared`. Module boundaries are enforced by `@nx/enforce-module-boundaries` through `scope:*` and `type:*` tags (PRD section 4). Fix a boundary error by moving code, never by loosening tags.
-- API contracts live in `libs/shared/contracts` as Zod schemas: one schema gives the type, the API validation and the form validation. Do not duplicate DTO types.
+- API contracts live in `libs/shared/contracts` as Zod schemas: one schema gives the type, the API validation and the form validation. Do not duplicate DTO types. Import Zod as `import * as z from 'zod'`; the named import `{ z }` defeats tree-shaking (lint blocks it).
 - Angular: standalone components only, signals for state, `ChangeDetectionStrategy.OnPush`, zoneless, `inject()` instead of constructor injection, `@if`/`@for`/`@defer` templates, lazy-loaded `feature-*` libraries.
 - Platform access (`@capacitor/*`, `window`, `document`, `localStorage`, `navigator`) only inside `libs/web/core/platform`, behind an interface and an `InjectionToken`.
 - API routes are versioned (`/v1`). Within a version only additive changes. Errors use the `ApiError` shape with an `errorCode`; clients react to `errorCode`, never to the message.

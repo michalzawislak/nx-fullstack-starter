@@ -24,6 +24,15 @@ export default defineConfig(() => ({
     coverage: {
       reportsDirectory: '../../../../coverage/libs/web/core/platform',
       provider: 'v8' as const,
+      include: ['src/**/*.ts'],
+      exclude: [
+        'src/**/*.spec.ts',
+        'src/**/*.spec-helpers.ts',
+        'src/index.ts',
+        'src/test-setup.ts',
+      ],
+      // PRD QA-2: at least 80% of lines in libs/web/core/*.
+      thresholds: { lines: 80 },
     },
   },
 }));

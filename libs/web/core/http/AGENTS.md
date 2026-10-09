@@ -1,0 +1,10 @@
+# libs/web/core/http
+
+HTTP layer of the frontend (PRD section 5.3). Components and services call the API only through `ApiClient`.
+
+- `ApiClient.request(API_ENDPOINTS.<group>.<name>, body?)` takes the method, path and types from the contract and parses the response with its schema (unknown fields are dropped, CON-7). Never call `HttpClient` with a hand-written API URL.
+- The base URL comes from `provideApiConfig({ baseUrl, appVersion })` in `app.config.ts` and must be absolute (FE-12). `isApiRequest()` decides which requests get app headers and tokens; nothing is sent to other hosts.
+- Interceptor order in `provideHttpClient(withInterceptors([...]))`: `appHeadersInterceptor`, `authInterceptor` (from `@starter/web/core/auth`), `apiErrorInterceptor`. The auth interceptor relies on errors already mapped by the error interceptor.
+- Errors reach callers as `ApiRequestError` (branch on `errorCode`, FE-15) or `NetworkError` (show the offline state, FE-16). Never inspect `HttpErrorResponse` or error messages in components.
+- `withCredentials` is set only for paths under the refresh-token cookie path (`/v1/auth`).
+- Tests: `HttpTestingController` with the real interceptors (`src/lib/testing.spec-helpers.ts`).

@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import * as z from 'zod';
 
 /** GET /health: 200 with status ok, 503 with status error when the database does not answer. */
 export const healthStatusSchema = z.object({

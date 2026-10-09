@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import * as z from 'zod';
 
 /** Native apps send the refresh token in the body; the web sends none and relies on the cookie (BE-4). */
 export const refreshRequestSchema = z.object({

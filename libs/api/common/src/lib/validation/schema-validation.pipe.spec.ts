@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import * as z from 'zod';
 
 import { ApiException } from '../errors/api.exception';
 import { SchemaValidationPipe } from './schema-validation.pipe';

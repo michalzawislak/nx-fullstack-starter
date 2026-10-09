@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import * as z from 'zod';
 
 /** Headers sent by every client request (FE-13, CON-6). */
 export const APP_HEADERS = {

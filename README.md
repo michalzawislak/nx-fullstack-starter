@@ -2,7 +2,7 @@
 
 Szablon monorepo: jedna baza kodu dla aplikacji web, aplikacji iOS i Android (Capacitor) oraz API w NestJS z PostgreSQL. Wymagania, decyzje i plan budowy są w [`docs/prd/starter.md`](docs/prd/starter.md), a uzasadnienia decyzji w [`docs/decisions/`](docs/decisions/README.md).
 
-> Stan: krok 5 z 9 (workspace, kontekst AI, API z `/health`, PostgreSQL w Dockerze, szkielety bibliotek z granicami modułów, kontrakt API w Zod, API z bazą, auth i OpenAPI). Frontend, UI i Capacitor dochodzą w kolejnych krokach.
+> Stan: krok 6 z 9 (workspace, kontekst AI, API z `/health`, PostgreSQL w Dockerze, szkielety bibliotek z granicami modułów, kontrakt API w Zod, API z bazą, auth i OpenAPI, warstwa platformy, HTTP i sesji we frontendzie). Ekrany, UI i Capacitor dochodzą w kolejnych krokach.
 
 ## Wymagania
 
