@@ -1,0 +1,29 @@
+<h1>Welcome</h1>
+
+<!-- Check hasValue() first: reading value() of a resource in the error state throws. -->
+@if (user.hasValue()) {
+  <p>
+    You are signed in as <strong>{{ user.value().email }}</strong
+    >.
+  </p>
+} @else if (user.error()) {
+  <p role="alert">Your profile could not be loaded.</p>
+} @else {
+  <p aria-busy="true">Loading your profile…</p>
+}
+
+<!-- Content outside the first screen loads on demand (FE-6). -->
+@defer (on viewport) {
+  <section class="details" aria-labelledby="details-title">
+    <h2 id="details-title">About this starter</h2>
+    <p>
+      This screen comes from <code>libs/web/feature-home</code>. Build the first
+      feature of your app as a new lazy <code>feature-*</code> library.
+    </p>
+    @if (user.hasValue()) {
+      <p>Account created on {{ user.value().createdAt | date: 'longDate' }}.</p>
+    }
+  </section>
+} @placeholder {
+  <div class="details-placeholder"></div>
+}

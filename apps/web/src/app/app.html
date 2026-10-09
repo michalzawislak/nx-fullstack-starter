@@ -1,4 +1,9 @@
-<main>
-  <h1>{{ appTitle }}</h1>
+<app-offline-banner [isOffline]="!network.isOnline()" />
+
+@if (session.isAuthenticated()) {
+  <app-shell [appName]="appName" [navItems]="navItems">
+    <router-outlet />
+  </app-shell>
+} @else {
   <router-outlet />
-</main>
+}

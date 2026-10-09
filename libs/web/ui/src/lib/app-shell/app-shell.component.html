@@ -1,0 +1,22 @@
+<header class="header">
+  <span class="app-name">{{ appName() }}</span>
+  <div class="actions"><ng-content select="[shellActions]" /></div>
+</header>
+<nav class="nav" aria-label="Main">
+  <ul>
+    @for (item of navItems(); track item.path) {
+      <li>
+        <a
+          [routerLink]="item.path"
+          routerLinkActive="active"
+          ariaCurrentWhenActive="page"
+          [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
+          >{{ item.label }}</a
+        >
+      </li>
+    }
+  </ul>
+</nav>
+<main class="content">
+  <ng-content />
+</main>

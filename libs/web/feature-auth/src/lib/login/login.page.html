@@ -1,0 +1,39 @@
+<section class="card" aria-labelledby="login-title">
+  <h1 id="login-title">Sign in</h1>
+
+  <form [formRoot]="loginForm">
+    <app-text-field label="Email" [field]="loginForm.email">
+      <input
+        appFieldControl
+        type="email"
+        autocomplete="email"
+        inputmode="email"
+        [formField]="loginForm.email"
+      />
+    </app-text-field>
+
+    <app-text-field label="Password" [field]="loginForm.password">
+      <input
+        appFieldControl
+        type="password"
+        autocomplete="current-password"
+        [formField]="loginForm.password"
+      />
+    </app-text-field>
+
+    @if (submitError(); as message) {
+      <p class="form-error" role="alert">{{ message }}</p>
+    }
+
+    <button
+      appButton
+      type="submit"
+      [block]="true"
+      [busy]="loginForm().submitting()"
+    >
+      {{ loginForm().submitting() ? 'Signing in…' : 'Sign in' }}
+    </button>
+  </form>
+
+  <p class="switch">No account yet? <a routerLink="/register">Create one</a></p>
+</section>

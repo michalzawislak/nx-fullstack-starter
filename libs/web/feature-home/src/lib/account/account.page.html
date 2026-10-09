@@ -1,0 +1,20 @@
+<h1>Account</h1>
+
+@if (user.hasValue()) {
+  <dl>
+    <dt>Email</dt>
+    <dd>{{ user.value().email }}</dd>
+  </dl>
+} @else if (user.error()) {
+  <p role="alert">Your profile could not be loaded.</p>
+}
+
+<button
+  appButton
+  variant="danger"
+  type="button"
+  [busy]="isSigningOut()"
+  (click)="signOut()"
+>
+  Sign out
+</button>

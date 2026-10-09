@@ -1,0 +1,9 @@
+// Safe areas as CSS variables (PRD FE-18). Requires viewport-fit=cover in index.html (FE-17).
+// Use them for anything touching the screen edges: the notch, the home indicator, the status bar.
+
+@mixin custom-properties {
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-right: env(safe-area-inset-right, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-left: env(safe-area-inset-left, 0px);
+}

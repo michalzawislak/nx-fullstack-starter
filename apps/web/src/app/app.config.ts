@@ -14,6 +14,7 @@ import { authInterceptor, provideAuth } from '@starter/web/core/auth';
 import {
   apiErrorInterceptor,
   appHeadersInterceptor,
+  appVersionInterceptor,
   provideApiConfig,
 } from '@starter/web/core/http';
 import { providePlatform } from '@starter/web/core/platform';
@@ -26,11 +27,12 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideRouter(appRoutes, withComponentInputBinding()),
-    // Order matters: authInterceptor must see errors already mapped by apiErrorInterceptor.
+    // Order matters: appVersionInterceptor and authInterceptor must see errors already mapped by apiErrorInterceptor.
     provideHttpClient(
       withFetch(),
       withInterceptors([
         appHeadersInterceptor,
+        appVersionInterceptor,
         authInterceptor,
         apiErrorInterceptor,
       ]),

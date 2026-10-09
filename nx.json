@@ -75,8 +75,8 @@
     "@nx/angular:library": {
       "linter": "eslint",
       "unitTestRunner": "vitest-analog",
-      "standalone": true,
       "strict": true,
+      "standalone": true,
       "style": "scss",
       "changeDetection": "OnPush",
       "prefix": "app"

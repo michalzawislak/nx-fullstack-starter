@@ -1,0 +1,39 @@
+:host {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-width: var(--touch-target);
+  min-height: var(--touch-target);
+  padding: 0 var(--space-5);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+:host(.app-button--secondary) {
+  background: transparent;
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+
+:host(.app-button--danger) {
+  background: transparent;
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+
+:host(.app-button--block) {
+  width: 100%;
+}
+
+:host([disabled]),
+:host([aria-busy='true']) {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

@@ -1,0 +1,38 @@
+import { join } from 'node:path';
+
+import angular from '@analogjs/vite-plugin-angular';
+import { defineConfig } from 'vite';
+
+export default defineConfig(() => ({
+  root: import.meta.dirname,
+  cacheDir: '../../../node_modules/.vite/libs/web/feature-home',
+  plugins: [
+    angular({ tsconfig: join(import.meta.dirname, 'tsconfig.spec.json') }),
+  ],
+  resolve: {
+    tsconfigPaths: true,
+  },
+  test: {
+    name: 'web-feature-home',
+    watch: false,
+    globals: true,
+    environment: 'jsdom',
+    include: ['{src,tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+    setupFiles: ['src/test-setup.ts'],
+    passWithNoTests: true,
+    reporters: ['default'],
+    coverage: {
+      reportsDirectory: '../../../coverage/libs/web/feature-home',
+      provider: 'v8' as const,
+      include: ['src/**/*.ts'],
+      exclude: [
+        'src/**/*.spec.ts',
+        'src/**/*.spec-helpers.ts',
+        'src/index.ts',
+        'src/test-setup.ts',
+      ],
+      // PRD QA-2: at least 80% of lines in libs/web/feature-*.
+      thresholds: { lines: 80 },
+    },
+  },
+}));

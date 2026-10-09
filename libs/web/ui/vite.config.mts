@@ -24,6 +24,9 @@ export default defineConfig(() => ({
     coverage: {
       reportsDirectory: '../../../coverage/libs/web/ui',
       provider: 'v8' as const,
+      include: ['src/**/*.ts'],
+      exclude: ['src/**/*.spec.ts', 'src/index.ts', 'src/test-setup.ts'],
+      thresholds: { lines: 80 },
     },
   },
 }));

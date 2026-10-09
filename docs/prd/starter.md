@@ -1,6 +1,6 @@
 # PRD: Starter Nx + Angular + NestJS + PostgreSQL + Capacitor
 
-Oct 9, 2026 · @Michał Zawiślak · wersja 8: wyniki kroków 1–6
+Oct 9, 2026 · @Michał Zawiślak · wersja 9: wyniki kroków 1–7
 
 ## 1. Cel i zakres
 
@@ -38,6 +38,7 @@ Starter to szablon monorepo, z którego jedną bazą kodu powstaje aplikacja web
 | Auth | Tokeny z odświeżaniem | Ciasteczka sesyjne zawodzą w WebView; origin aplikacji to `capacitor://localhost` (iOS) lub `https://localhost` (Android). | Sesje na ciasteczkach |
 | API | Wersjonowane od pierwszego dnia (`/v1`) | Starych wersji aplikacji ze sklepu nie da się wycofać. | Brak wersjonowania |
 | ORM | Prisma 7.10 (ADR-0013) | Dojrzałe migracje, typy generowane ze schematu, dostęp do bazy tylko w `libs/api/database`. | Drizzle, TypeORM |
+| Biblioteka UI | Własne minimalne komponenty (ADR-0014) | Mały bundle, nic nie narzuca aplikacji budowanej na starterze; formularze na Signal Forms z walidacją schematami z kontraktu. | Ionic, Angular Material |
 | Renderowanie web | Bez SSR, kod gotowy na SSR (FE-26) | Starter to aplikacja za logowaniem: SSR nie zna sesji (access token w pamięci, ciasteczko ograniczone do `/v1/auth`), więc daje mało, a kosztuje drugą ścieżkę builda, trzecią implementację abstrakcji i serwer Node. Mobile i tak wymaga buildu statycznego. SSR można dodać później generatorem `setup-ssr`. | SSR od początku; publiczne strony pod SEO lepiej robić osobno |
 | Menedżer pakietów | npm | Zero konfiguracji, dokumentacja Capacitora, NestJS i Prismy zakłada npm, płaski `node_modules` bez ryzyka dla ścieżek w projektach natywnych. Przy jednym `package.json` w Nx przewaga ścisłości pnpm jest mała. | pnpm (szybszy, bezpieczniejsze domyślne ustawienia, ale ryzyko z symlinkami w Capacitorze i dodatkowa konfiguracja), yarn PnP, bun |
 | Kontekst AI | Jedno źródło (`AGENTS.md` + `.claude/skills/`), adaptery generowane skryptem | Starter będzie używany z różnymi narzędziami AI; każde czyta inne pliki, a ręczne kopie się rozjeżdżają (sekcja 10). | Własny katalog `ai/` (żadne narzędzie go nie znajdzie), konfiguracja tylko pod jedno narzędzie |
@@ -633,6 +634,16 @@ nx g @nx/angular:lib libs/web/feature-home
 
 **Gotowe, gdy:** testy E2E przechodzą w widoku mobilnym i desktopowym.
 
+Uwagi z wykonania kroku 7:
+
+- **UI (`libs/web/ui`).** Tokeny w `styles/_tokens.scss` (mapy SASS dla breakpointów, zmienne CSS dla reszty, motyw jasny i ciemny z kontrastem AA), safe areas jako zmienne CSS, style bazowe (FE-18 do FE-24). Komponenty: `button[appButton]` (selektor atrybutu zachowuje natywną semantykę), `app-text-field` z dyrektywą `appFieldControl` (etykieta, podpowiedź, błędy po dotknięciu pola, `aria-describedby`, `aria-invalid`), `app-offline-banner` (region `aria-live`) i `app-shell` (dolny pasek, od 768 px panel boczny).
+- **Formularze.** Signal Forms z Angulara 22 (`form`, `[formField]`, `form[formRoot]`, stabilne API) z `validateStandardSchema(path, loginRequestSchema)`: formularz waliduje dokładnie tym schematem, którego używa API (FE-25). Komunikaty błędów API dobierane po `errorCode`; `returnUrl` przyjmowany tylko jako ścieżka w aplikacji.
+- **Ekrany.** `feature-auth` (logowanie, rejestracja) i `feature-home` (start, konto z wylogowaniem, `rxResource` na `GET /v1/users/me`, `@defer (on viewport)`), oba leniwe; ekran `update-required` i `appVersionInterceptor` dla `APP_VERSION_UNSUPPORTED` (MOB-11).
+- **Wykryte i poprawione.** Odczyt `resource.value()` w stanie błędu rzuca wyjątek w Angularze 22, więc szablony sprawdzają najpierw `hasValue()`. Prettier formatował szablony parserem HTML i spłaszczał bloki `@if`, więc `.prettierrc` ustawia parser `angular` dla `*.html`. API nie wczytywało `.env`, więc `npm run dev` nie wystartowałby; `main.ts` wczytuje `.env` z katalogu głównego, nie nadpisując ustawionych zmiennych.
+- **E2E.** Playwright uruchamia API i web jako `webServer`; projekty `mobile` (Pixel 7) i `desktop` (1280 × 800). 16 przebiegów: 7 scenariuszy w obu projektach (rejestracja, sesja po przeładowaniu, wylogowanie i ochrona tras, błędne hasło i powrót na żądaną stronę, walidacja bez wywołania API, cele dotykowe ≥ 44 px, baner offline) i po jednym scenariuszu układu nawigacji na projekt (tagi `@mobile` i `@desktop`). Zmienna `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` pozwala użyć Chromium zainstalowanego poza Playwrightem.
+- **Testy jednostkowe.** 29 nowych testów (UI, ekrany, aplikacja); pokrycie linii: ui 100%, feature-auth 100%, feature-home 93%.
+- **Rozmiar bundla.** Bundle początkowy ma 471 kB (126 kB po kompresji): `@angular/core` 201 kB, `@angular/router` 97 kB, `@angular/common` z HTTP 97 kB, Zod 116 kB, kod startera około 15 kB. Formularze (73 kB) są tylko w leniwym chunku ekranów logowania. Próg ostrzeżenia 300 kB z QA-8 jest dla Angulara 22 z routerem i HTTP nieosiągalny; do błędu (500 kB) zostało 29 kB (ryzyko R9).
+
 ### Krok 8. Capacitor
 
 ```bash
@@ -668,13 +679,12 @@ Pipeline z sekcji 9.3, README (wymagania środowiska, komendy, dodawanie pluginu
 
 ## 12. Otwarte decyzje i ryzyka
 
-Dwie kwestie nie padły w dotychczasowych ustaleniach. Dokument przyjmuje dla nich wartości domyślne, które można zmienić przed krokiem wskazanym w tabeli.
+Jedna kwestia nie padła w dotychczasowych ustaleniach. Dokument przyjmuje dla nich wartości domyślne, które można zmienić przed krokiem wskazanym w tabeli.
 
 ### Otwarte decyzje
 
 | Decyzja | Przyjęte domyślnie | Alternatywa | Rozstrzygnąć przed |
 | --- | --- | --- | --- |
-| Biblioteka UI | Własne minimalne komponenty w `libs/web/ui` | Ionic (gotowe natywne odczucie) lub Angular Material | Krok 7 |
 | Plugin bezpiecznego magazynu | Wybór w kroku 8 spośród pluginów zgodnych z Capacitorem 8 | Własny plugin natywny | Krok 8 |
 
 ### Ryzyka
@@ -688,7 +698,7 @@ Dwie kwestie nie padły w dotychczasowych ustaleniach. Dokument przyjmuje dla ni
 | R5 | Prisma 8 zmienia API | Migracja ORM w przyszłości | Dostęp do bazy tylko przez `libs/api/database` |
 | R6 | Odrzucenie przez Apple z powodu wytycznej 4.2 | Opóźnienie publikacji konkretnej aplikacji | Wymagania MOB-5 do MOB-11 i co najmniej jedna funkcja natywna w każdej aplikacji budowanej na starterze |
 | R7 | Wydajność WebView na słabszych Androidach | Wolne listy i animacje | Budżet bundla, wirtualizacja list, test na urządzeniu ze średniej półki w liście kontrolnej |
-| R9 | Zod w wariancie klasycznym zajmuje 92 kB bundla początkowego; po kroku 6 bundle ma 321 kB przy progu ostrzeżenia 300 kB | Wolniejszy start na słabych urządzeniach, rosnące ostrzeżenie budżetu | Po kroku 7 zmierzyć ponownie; jeśli bundle zbliży się do 500 kB, przenieść schematy formularzy do leniwie ładowanych bibliotek albo przejść na `zod/mini` w kontrakcie (wymaga ADR) |
+| R9 | Bundle początkowy po kroku 7: 471 kB przy progu błędu 500 kB (QA-8); sam framework to ponad 390 kB, Zod 116 kB | Każda zmiana w bundlu początkowym może przerwać build | Decyzja po kroku 7: `zod/mini` w kontrakcie (około −80 kB) albo budżet dopasowany do zmierzonej bazy frameworka (wymaga ADR) |
 | R8 | Narzędzia AI szybko zmieniają pliki, które czytają (tabela w sekcji 10.1) | Któreś narzędzie przestaje widzieć instrukcje lub skille | Jedno źródło i generator: zmiana dotyczy tylko `tools/ai/sync.mts`; test w trzech narzędziach w liście kontrolnej kroku 9 |
 
 ### Kiedy wrócić do decyzji o Capacitorze

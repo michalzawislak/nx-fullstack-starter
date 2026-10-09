@@ -1,0 +1,23 @@
+:host {
+  display: block;
+  max-width: 720px;
+}
+
+h1 {
+  margin-top: 0;
+  font-size: var(--font-size-xl);
+}
+
+.details,
+.details-placeholder {
+  margin-top: var(--space-6);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  min-height: 120px;
+}
+
+h2 {
+  margin-top: 0;
+  font-size: var(--font-size-lg);
+}

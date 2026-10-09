@@ -1,0 +1,45 @@
+<section class="card" aria-labelledby="register-title">
+  <h1 id="register-title">Create an account</h1>
+
+  <form [formRoot]="registerForm">
+    <app-text-field label="Email" [field]="registerForm.email">
+      <input
+        appFieldControl
+        type="email"
+        autocomplete="email"
+        inputmode="email"
+        [formField]="registerForm.email"
+      />
+    </app-text-field>
+
+    <app-text-field
+      label="Password"
+      [hint]="passwordHint"
+      [field]="registerForm.password"
+    >
+      <input
+        appFieldControl
+        type="password"
+        autocomplete="new-password"
+        [formField]="registerForm.password"
+      />
+    </app-text-field>
+
+    @if (submitError(); as message) {
+      <p class="form-error" role="alert">{{ message }}</p>
+    }
+
+    <button
+      appButton
+      type="submit"
+      [block]="true"
+      [busy]="registerForm().submitting()"
+    >
+      {{ registerForm().submitting() ? 'Creating account…' : 'Create account' }}
+    </button>
+  </form>
+
+  <p class="switch">
+    Already have an account? <a routerLink="/login">Sign in</a>
+  </p>
+</section>

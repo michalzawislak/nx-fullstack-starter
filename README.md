@@ -2,7 +2,7 @@
 
 Szablon monorepo: jedna baza kodu dla aplikacji web, aplikacji iOS i Android (Capacitor) oraz API w NestJS z PostgreSQL. Wymagania, decyzje i plan budowy są w [`docs/prd/starter.md`](docs/prd/starter.md), a uzasadnienia decyzji w [`docs/decisions/`](docs/decisions/README.md).
 
-> Stan: krok 6 z 9 (workspace, kontekst AI, API z `/health`, PostgreSQL w Dockerze, szkielety bibliotek z granicami modułów, kontrakt API w Zod, API z bazą, auth i OpenAPI, warstwa platformy, HTTP i sesji we frontendzie). Ekrany, UI i Capacitor dochodzą w kolejnych krokach.
+> Stan: krok 7 z 9 (workspace, kontekst AI, API z `/health`, PostgreSQL w Dockerze, szkielety bibliotek z granicami modułów, kontrakt API w Zod, API z bazą, auth i OpenAPI, warstwa platformy, HTTP i sesji, ekrany logowania i rejestracji z własnymi komponentami UI, E2E). Capacitor, CI i dokumentacja końcowa dochodzą w krokach 8–9.
 
 ## Wymagania
 
@@ -37,7 +37,7 @@ Jeśli wolumen bazy powstał przed krokiem 5, baza testowa `starter_test` nie is
 | PostgreSQL start / stop | `npm run db:up` / `npm run db:down`                                  |
 | Sprawdzenie zmiany      | `npx nx affected -t lint test build`                                 |
 | Sprawdzenie wszystkiego | `npx nx run-many -t lint test build`                                 |
-| E2E                     | `npx nx e2e web-e2e`                                                 |
+| E2E (mobile i desktop)  | `npx nx e2e web-e2e` (wymaga `npm run db:up`)                        |
 | Testy integracyjne API  | `npm run test:integration`                                           |
 | Migracja bazy           | `npm run db:migrate -- --name <zmiana>`, potem `npm run db:generate` |
 | Konto testowe           | `npm run db:seed`                                                    |

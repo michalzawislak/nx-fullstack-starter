@@ -1,0 +1,13 @@
+:host {
+  display: block;
+}
+
+:host(.offline) .banner {
+  padding: calc(var(--space-2) + var(--safe-area-top))
+    calc(var(--space-4) + var(--safe-area-right)) var(--space-2)
+    calc(var(--space-4) + var(--safe-area-left));
+  background: var(--color-warning-surface);
+  color: var(--color-warning-text);
+  font-size: var(--font-size-sm);
+  text-align: center;
+}

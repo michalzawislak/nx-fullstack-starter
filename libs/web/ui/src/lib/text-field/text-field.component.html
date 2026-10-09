@@ -1,0 +1,12 @@
+<label class="label" [for]="controlId">{{ label() }}</label>
+<ng-content />
+@if (hint(); as hintText) {
+  <p class="hint" [id]="hintId">{{ hintText }}</p>
+}
+@if (showErrors()) {
+  <ul class="errors" [id]="errorId" role="alert">
+    @for (message of errorMessages(); track $index) {
+      <li>{{ message }}</li>
+    }
+  </ul>
+}

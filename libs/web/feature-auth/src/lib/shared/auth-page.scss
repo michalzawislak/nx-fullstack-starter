@@ -1,0 +1,44 @@
+:host {
+  display: flex;
+  justify-content: center;
+  padding: calc(var(--space-6) + var(--safe-area-top))
+    calc(var(--space-4) + var(--safe-area-right))
+    calc(var(--space-6) + var(--safe-area-bottom))
+    calc(var(--space-4) + var(--safe-area-left));
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: 100%;
+  max-width: 400px;
+}
+
+h1 {
+  margin: 0;
+  font-size: var(--font-size-xl);
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.form-error {
+  margin: 0;
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-danger);
+}
+
+.switch {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+a {
+  color: var(--color-primary);
+}

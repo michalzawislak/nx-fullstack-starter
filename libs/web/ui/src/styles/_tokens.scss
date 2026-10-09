@@ -1,0 +1,71 @@
+// Design tokens of the starter (PRD FE-20). The only place for breakpoints, spacing and colours.
+// Components use the CSS custom properties; SCSS needs the maps only for media queries.
+
+@use 'sass:map';
+
+$breakpoints: (
+  sm: 480px,
+  md: 768px,
+  lg: 1024px,
+);
+
+$spacing: (
+  1: 4px,
+  2: 8px,
+  3: 12px,
+  4: 16px,
+  5: 24px,
+  6: 32px,
+  7: 48px,
+);
+
+/// Mobile-first media query: styles apply from the given breakpoint up.
+@mixin from($breakpoint) {
+  @media (min-width: map.get($breakpoints, $breakpoint)) {
+    @content;
+  }
+}
+
+@mixin custom-properties {
+  @each $key, $value in $spacing {
+    --space-#{$key}: #{$value};
+  }
+
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --touch-target: 44px; // FE-19
+  --font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem; // never below 16px in inputs (FE-23)
+  --font-size-lg: 1.25rem;
+  --font-size-xl: 1.75rem;
+  --shell-nav-height: 56px;
+  --shell-sidebar-width: 220px;
+
+  // Colours meet WCAG 2.2 AA contrast on their backgrounds (FE-24).
+  --color-background: #ffffff;
+  --color-surface: #f4f5f7;
+  --color-text: #1b1d21;
+  --color-text-muted: #545a66;
+  --color-border: #c9ccd3;
+  --color-primary: #1f4fd1;
+  --color-on-primary: #ffffff;
+  --color-danger: #b42318;
+  --color-warning-surface: #fff4d6;
+  --color-warning-text: #5c4300;
+  --color-focus: #1f4fd1;
+}
+
+@mixin dark-custom-properties {
+  --color-background: #121418;
+  --color-surface: #1c1f25;
+  --color-text: #eceef2;
+  --color-text-muted: #a9afbb;
+  --color-border: #3a3f4a;
+  --color-primary: #8aa8ff;
+  --color-on-primary: #0b1a44;
+  --color-danger: #ff9a8f;
+  --color-warning-surface: #3d3000;
+  --color-warning-text: #ffe39a;
+  --color-focus: #8aa8ff;
+}

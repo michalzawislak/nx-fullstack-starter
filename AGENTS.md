@@ -17,7 +17,9 @@ libs/shared/contracts   Zod contract shared by web and API
 libs/web/core/platform  platform abstractions (only place for Capacitor and browser globals)
 libs/web/core/http      HTTP client and interceptors
 libs/web/core/auth      session state and guards
-libs/web/ui             presentational components and styles
+libs/web/ui             presentational components, design tokens, global styles
+libs/web/feature-auth   sign-in and registration screens (lazy)
+libs/web/feature-home   example screens after sign-in (lazy)
 libs/api/database       database access
 libs/api/common         shared API infrastructure
 libs/api/auth           auth module
@@ -26,27 +28,27 @@ tools/ai          AI context generator (sync.mts) and MCP server list
 docs/             PRD, ADRs, product context
 ```
 
-`libs/web/ui` is still empty (step 7). Planned and not created yet: `libs/web/feature-auth`, `libs/web/feature-home`, `capacitor.config.ts`, `ios/`, `android/`. Import libraries through their aliases (`@starter/shared/contracts`, `@starter/web/core/platform`, `@starter/api/database`, …), never through relative paths across projects. Each new area gets its own `AGENTS.md`.
+Planned and not created yet: `capacitor.config.ts`, `ios/`, `android/` (step 8). Import libraries through their aliases (`@starter/shared/contracts`, `@starter/web/core/platform`, `@starter/api/database`, …), never through relative paths across projects. Each new area gets its own `AGENTS.md`.
 
 ## Commands
 
 Node 24 (`.nvmrc`) and npm 11 or newer are required.
 
-| Task                        | Command                                                            |
-| --------------------------- | ------------------------------------------------------------------ |
-| Install                     | `npm install`                                                      |
-| Run database, web and API   | `npm run dev` (needs Docker; copy `.env.example` to `.env`)        |
-| Run the web app             | `npx nx serve web`                                                 |
-| Run the API                 | `npx nx serve api` (http://localhost:3000/health)                  |
-| Start / stop PostgreSQL     | `npm run db:up` / `npm run db:down`                                |
-| Verify a change             | `npx nx affected -t lint test build`                               |
-| Verify everything           | `npx nx run-many -t lint test build`                               |
-| E2E                         | `npx nx e2e web-e2e` (first run: `npx playwright install`)         |
-| API integration tests       | `npm run test:integration` (PostgreSQL, applies migrations first)  |
-| Database migration          | `npm run db:migrate -- --name <change>` then `npm run db:generate` |
-| Seed the test account       | `npm run db:seed` (demo@example.com / starter-password)            |
-| Regenerate AI context files | `npm run ai:sync`                                                  |
-| Check AI context files      | `npm run ai:check`                                                 |
+| Task                        | Command                                                                           |
+| --------------------------- | --------------------------------------------------------------------------------- |
+| Install                     | `npm install`                                                                     |
+| Run database, web and API   | `npm run dev` (needs Docker; copy `.env.example` to `.env`)                       |
+| Run the web app             | `npx nx serve web`                                                                |
+| Run the API                 | `npx nx serve api` (http://localhost:3000/health)                                 |
+| Start / stop PostgreSQL     | `npm run db:up` / `npm run db:down`                                               |
+| Verify a change             | `npx nx affected -t lint test build`                                              |
+| Verify everything           | `npx nx run-many -t lint test build`                                              |
+| E2E (mobile and desktop)    | `npx nx e2e web-e2e` (needs `npm run db:up`; first run: `npx playwright install`) |
+| API integration tests       | `npm run test:integration` (PostgreSQL, applies migrations first)                 |
+| Database migration          | `npm run db:migrate -- --name <change>` then `npm run db:generate`                |
+| Seed the test account       | `npm run db:seed` (demo@example.com / starter-password)                           |
+| Regenerate AI context files | `npm run ai:sync`                                                                 |
+| Check AI context files      | `npm run ai:check`                                                                |
 
 Run the verify command before you consider a change done.
 
@@ -68,7 +70,7 @@ Run the verify command before you consider a change done.
 
 ## Skills
 
-Recipes for recurring tasks live in `.claude/skills/` (read by Claude Code, Cursor and Copilot): `add-endpoint`, `add-api-module`, `db-migration`. Use them instead of improvising; update a skill when the pattern it describes changes.
+Recipes for recurring tasks live in `.claude/skills/` (read by Claude Code, Cursor and Copilot): `add-endpoint`, `add-api-module`, `db-migration`, `add-web-feature`. Use them instead of improvising; update a skill when the pattern it describes changes.
 
 ## AI context in this repository
 
