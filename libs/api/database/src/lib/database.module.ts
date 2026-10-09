@@ -1,8 +1,11 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 
+import { PrismaService } from './prisma.service';
+
+/** Registered once in the API app; domain modules inject PrismaService (BE-10). */
+@Global()
 @Module({
-  controllers: [],
-  providers: [],
-  exports: [],
+  providers: [PrismaService],
+  exports: [PrismaService],
 })
 export class DatabaseModule {}

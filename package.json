@@ -7,7 +7,13 @@
     "db:up": "docker compose up -d --wait postgres",
     "db:down": "docker compose down",
     "ai:sync": "node tools/ai/sync.mts",
-    "ai:check": "node tools/ai/sync.mts --check && nx configure-ai-agents --check"
+    "ai:check": "node tools/ai/sync.mts --check && nx configure-ai-agents --check",
+    "postinstall": "nx run api-database:prisma-generate",
+    "db:generate": "nx run api-database:prisma-generate",
+    "db:migrate": "nx run api-database:prisma-migrate",
+    "db:deploy": "nx run api-database:prisma-deploy",
+    "db:seed": "nx run api-database:prisma-seed",
+    "test:integration": "nx run api:test-integration"
   },
   "private": true,
   "dependencies": {
@@ -19,7 +25,16 @@
     "@angular/router": "~22.2.2",
     "@nestjs/common": "~11.2.7",
     "@nestjs/core": "~11.2.7",
+    "@nestjs/jwt": "~11.0.2",
     "@nestjs/platform-express": "~11.2.7",
+    "@nestjs/swagger": "~11.4.7",
+    "@nestjs/throttler": "^6.7.1",
+    "@node-rs/argon2": "^2.2.2",
+    "@prisma/adapter-pg": "^7.10.0",
+    "@prisma/client": "^7.10.0",
+    "cookie-parser": "^1.4.7",
+    "helmet": "^8.3.0",
+    "pg": "^8.23.1",
     "reflect-metadata": "^0.2.0",
     "rxjs": "~7.8.0",
     "zod": "~4.6.5"
@@ -53,7 +68,11 @@
     "@playwright/test": "^1.37.0",
     "@schematics/angular": "~22.2.2",
     "@swc/helpers": "~0.5.18",
+    "@types/cookie-parser": "^1.4.10",
+    "@types/express": "^5.0.6",
     "@types/node": "^24.19.1",
+    "@types/pg": "^8.23.1",
+    "@types/supertest": "^7.2.1",
     "@typescript-eslint/utils": "^8.58.0",
     "@vitest/coverage-v8": "^4.0.0",
     "@vitest/ui": "^4.0.0",
@@ -65,7 +84,10 @@
     "jsdom": "^27.1.0",
     "nx": "23.3.0",
     "prettier": "~3.6.2",
+    "prisma": "^7.10.0",
+    "supertest": "^7.3.1",
     "tslib": "^2.3.0",
+    "tsx": "^4.23.15",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.58.0",
     "vite": "^8.0.0",
@@ -75,7 +97,12 @@
     "webpack-dev-server": "^5.2.1"
   },
   "overrides": {
-    "undici": "^7.30.0"
+    "undici": "^7.30.0",
+    "mysql2": "^3.24.5",
+    "deepmerge-ts": "^8.0.2",
+    "@nestjs/swagger": {
+      "js-yaml": "^5.4.3"
+    }
   },
   "engines": {
     "node": "^24.15.0",

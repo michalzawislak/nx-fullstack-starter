@@ -16,6 +16,8 @@ services:
       # PostgreSQL 18 images keep data in /var/lib/postgresql/18/docker,
       # so the volume is mounted one level up (not at /var/lib/postgresql/data).
       - postgres-data:/var/lib/postgresql
+      # Creates the starter_test database for integration tests on first start.
+      - ./tools/docker/postgres-init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test:
         ['CMD-SHELL', 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']

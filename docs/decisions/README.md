@@ -16,5 +16,6 @@ Każda decyzja z PRD (sekcje 2 i 12) ma tutaj zapis: kontekst, decyzję, odrzuco
 | [0010](0010-nestjs-11.md)         | NestJS 11 na start                                       | przyjęta |
 | [0011](0011-polityka-audytu.md)   | Polityka audytu zależności                               | przyjęta |
 | [0012](0012-runnery-testow.md)    | Runnery testów Vitest w aplikacji i bibliotekach Angular | przyjęta |
+| [0013](0013-prisma-7.md)          | Prisma 7 jako ORM                                        | przyjęta |
 
-Otwarte decyzje (ORM, biblioteka UI, plugin bezpiecznego magazynu) dostaną ADR, gdy zostaną rozstrzygnięte w krokach 5, 7 i 8.
+Otwarte decyzje (biblioteka UI, plugin bezpiecznego magazynu) dostaną ADR, gdy zostaną rozstrzygnięte w krokach 7 i 8.

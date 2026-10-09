@@ -1,2 +1,2 @@
 export * from './lib/users.module';
-export * from './probe-value';
+export * from './lib/users.service';

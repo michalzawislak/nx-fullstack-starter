@@ -2,7 +2,7 @@
 
 Szablon monorepo: jedna baza kodu dla aplikacji web, aplikacji iOS i Android (Capacitor) oraz API w NestJS z PostgreSQL. Wymagania, decyzje i plan budowy są w [`docs/prd/starter.md`](docs/prd/starter.md), a uzasadnienia decyzji w [`docs/decisions/`](docs/decisions/README.md).
 
-> Stan: krok 4 z 9 (workspace, kontekst AI, API z `/health`, PostgreSQL w Dockerze, szkielety bibliotek z granicami modułów, kontrakt API w Zod). Auth, UI i Capacitor dochodzą w kolejnych krokach.
+> Stan: krok 5 z 9 (workspace, kontekst AI, API z `/health`, PostgreSQL w Dockerze, szkielety bibliotek z granicami modułów, kontrakt API w Zod, API z bazą, auth i OpenAPI). Frontend, UI i Capacitor dochodzą w kolejnych krokach.
 
 ## Wymagania
 
@@ -16,23 +16,33 @@ Szablon monorepo: jedna baza kodu dla aplikacji web, aplikacji iOS i Android (Ca
 nvm use
 npm install
 cp .env.example .env
-npm run dev     # PostgreSQL + web (http://localhost:4200) + API (http://localhost:3000/health)
+npm run db:up        # PostgreSQL 18 w Dockerze
+npm run db:migrate   # migracje (Prisma); nie powinien proponować nowej migracji
+npm run db:seed      # konto testowe demo@example.com / starter-password
+npm run dev          # PostgreSQL + web (http://localhost:4200) + API (http://localhost:3000/health)
 ```
+
+Dokumentacja API (OpenAPI generowane z kontraktu): http://localhost:3000/docs.
+
+Jeśli wolumen bazy powstał przed krokiem 5, baza testowa `starter_test` nie istnieje. Utwórz ją raz: `docker compose exec postgres createdb -U starter starter_test` (albo usuń wolumen: `docker compose down -v`).
 
 ## Komendy
 
-| Zadanie                 | Komenda                                           |
-| ----------------------- | ------------------------------------------------- |
-| Instalacja              | `npm install`                                     |
-| Baza, web i API         | `npm run dev`                                     |
-| Aplikacja web           | `npx nx serve web` (http://localhost:4200)        |
-| API                     | `npx nx serve api` (http://localhost:3000/health) |
-| PostgreSQL start / stop | `npm run db:up` / `npm run db:down`               |
-| Sprawdzenie zmiany      | `npx nx affected -t lint test build`              |
-| Sprawdzenie wszystkiego | `npx nx run-many -t lint test build`              |
-| E2E                     | `npx nx e2e web-e2e`                              |
-| Graf projektów          | `npx nx graph`                                    |
-| Pliki kontekstu AI      | `npm run ai:sync` / `npm run ai:check`            |
+| Zadanie                 | Komenda                                                              |
+| ----------------------- | -------------------------------------------------------------------- |
+| Instalacja              | `npm install`                                                        |
+| Baza, web i API         | `npm run dev`                                                        |
+| Aplikacja web           | `npx nx serve web` (http://localhost:4200)                           |
+| API                     | `npx nx serve api` (http://localhost:3000/health)                    |
+| PostgreSQL start / stop | `npm run db:up` / `npm run db:down`                                  |
+| Sprawdzenie zmiany      | `npx nx affected -t lint test build`                                 |
+| Sprawdzenie wszystkiego | `npx nx run-many -t lint test build`                                 |
+| E2E                     | `npx nx e2e web-e2e`                                                 |
+| Testy integracyjne API  | `npm run test:integration`                                           |
+| Migracja bazy           | `npm run db:migrate -- --name <zmiana>`, potem `npm run db:generate` |
+| Konto testowe           | `npm run db:seed`                                                    |
+| Graf projektów          | `npx nx graph`                                                       |
+| Pliki kontekstu AI      | `npm run ai:sync` / `npm run ai:check`                               |
 
 ## Wersje (nx report, 9 października 2026)
 
@@ -47,6 +57,8 @@ npm run dev     # PostgreSQL + web (http://localhost:4200) + API (http://localho
 | Playwright | 1.64.0            |
 | NestJS     | 11.2.7 (ADR-0010) |
 | PostgreSQL | 18 (Docker)       |
+| Prisma     | 7.10.0 (ADR-0013) |
+| Zod        | 4.6.5             |
 
 Aktualizacje wyłącznie przez `npx nx migrate latest`.
 

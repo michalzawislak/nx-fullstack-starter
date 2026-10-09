@@ -1,6 +1,6 @@
 # PRD: Starter Nx + Angular + NestJS + PostgreSQL + Capacitor
 
-Oct 9, 2026 · @Michał Zawiślak · wersja 6: wyniki kroków 1–4
+Oct 9, 2026 · @Michał Zawiślak · wersja 7: wyniki kroków 1–5
 
 ## 1. Cel i zakres
 
@@ -37,6 +37,7 @@ Starter to szablon monorepo, z którego jedną bazą kodu powstaje aplikacja web
 | Repozytorium | Monorepo Nx | Współdzielone typy i walidacja; zmiana kontraktu API wywołuje błędy kompilacji po obu stronach. | Osobne repozytoria |
 | Auth | Tokeny z odświeżaniem | Ciasteczka sesyjne zawodzą w WebView; origin aplikacji to `capacitor://localhost` (iOS) lub `https://localhost` (Android). | Sesje na ciasteczkach |
 | API | Wersjonowane od pierwszego dnia (`/v1`) | Starych wersji aplikacji ze sklepu nie da się wycofać. | Brak wersjonowania |
+| ORM | Prisma 7.10 (ADR-0013) | Dojrzałe migracje, typy generowane ze schematu, dostęp do bazy tylko w `libs/api/database`. | Drizzle, TypeORM |
 | Renderowanie web | Bez SSR, kod gotowy na SSR (FE-26) | Starter to aplikacja za logowaniem: SSR nie zna sesji (access token w pamięci, ciasteczko ograniczone do `/v1/auth`), więc daje mało, a kosztuje drugą ścieżkę builda, trzecią implementację abstrakcji i serwer Node. Mobile i tak wymaga buildu statycznego. SSR można dodać później generatorem `setup-ssr`. | SSR od początku; publiczne strony pod SEO lepiej robić osobno |
 | Menedżer pakietów | npm | Zero konfiguracji, dokumentacja Capacitora, NestJS i Prismy zakłada npm, płaski `node_modules` bez ryzyka dla ścieżek w projektach natywnych. Przy jednym `package.json` w Nx przewaga ścisłości pnpm jest mała. | pnpm (szybszy, bezpieczniejsze domyślne ustawienia, ale ryzyko z symlinkami w Capacitorze i dodatkowa konfiguracja), yarn PnP, bun |
 | Kontekst AI | Jedno źródło (`AGENTS.md` + `.claude/skills/`), adaptery generowane skryptem | Starter będzie używany z różnymi narzędziami AI; każde czyta inne pliki, a ręczne kopie się rozjeżdżają (sekcja 10). | Własny katalog `ai/` (żadne narzędzie go nie znajdzie), konfiguracja tylko pod jedno narzędzie |
@@ -59,7 +60,7 @@ Wersje sprawdzone 9 października 2026 w oficjalnych źródłach i potwierdzone 
 | [NestJS](https://github.com/nestjs/nest/releases) | 11.2.x teraz, 12.x po wsparciu w Nx | Najnowsza wersja to 12.1.2. `@nx/nest` 23.3.0 deklaruje `>=10.0.0 <12.0.0` (ADR-0010). Patrz reguła niżej. |
 | [Capacitor](https://capacitorjs.com/docs/main/reference/support-policy) | 8.x | Jedyna aktywnie rozwijana linia. Wymaga Xcode 26+, Android Studio 2025.2.1+; aplikacje działają od iOS 15 i Androida 7 (API 24). |
 | [PostgreSQL](https://www.postgresql.org/support/versioning/) | 18 (18.6) | Wspierany do listopada 2030. Wersja 19 jest w becie. |
-| [Prisma ORM](https://github.com/prisma/prisma/releases) | 7.x (najnowsza stabilna 7.10.0) | Propozycja, nie ustalenie (sekcja 12). Tag `latest` w npm wskazuje już 8.0.0-rc.22, więc wersję trzeba przypiąć jawnie. Wersja 8 wciąż łamie API i nie nadaje się do startera. |
+| [Prisma ORM](https://github.com/prisma/prisma/releases) | 7.10.0 | Wybrana w kroku 5 (ADR-0013). Tag `latest` w npm wskazuje już 8.0.0-rc.22, więc wersja jest przypięta jawnie. Wersja 8 wciąż łamie API. |
 | Testy | Vitest | Jeden runner dla frontendu i backendu. |
 | Lint | ESLint z regułą granic modułów Nx | Pilnuje zależności między bibliotekami (sekcja 4). |
 
@@ -593,6 +594,18 @@ Schemat i pierwsza migracja, moduły `users` i `auth`, globalny guard, filtr wyj
 
 **Gotowe, gdy:** testy integracyjne przechodzą dla rejestracji, logowania, odświeżenia, ponownego użycia zrotowanego tokenu i wylogowania.
 
+Uwagi z wykonania kroku 5:
+
+- **Baza (`libs/api/database`).** Prisma 7.10 z generatorem `prisma-client` i adapterem `@prisma/adapter-pg`, konfiguracja w `prisma.config.ts`, globalny `DatabaseModule` z `PrismaService`, migracja `20261009120000_init`, seed konta testowego. Komendy: `npm run db:generate`, `db:migrate`, `db:deploy`, `db:seed`. Klient generuje się w `postinstall` i przed `build`/`test`/`typecheck` (zależność `^prisma-generate`).
+- **Migracja napisana ręcznie.** CLI Prismy pobiera silnik schematu z `binaries.prisma.sh`, który był zablokowany w środowisku budowy. SQL odpowiada formatowi Prismy i został sprawdzony na PostgreSQL 16; zgodność ze schematem potwierdza `npm run db:migrate` na komputerze z dostępem do sieci (ADR-0013).
+- **Infrastruktura (`libs/api/common`).** `ConfigModule` z walidacją zmiennych Zod (BE-12) i tokenem `APP_CONFIG`; `ApiException` i globalny `ApiExceptionFilter` (każda odpowiedź błędu w kształcie `ApiError`); `SchemaValidationPipe` oparty na interfejsie Standard Schema, zachowujący się jak natywny pipe NestJS 12 (CON-2); `RequestLoggingMiddleware` z `X-Request-Id` i logami JSON na produkcji (`ConsoleLogger({ json: true })`, BE-16); `AppVersionGuard` i `GET /v1/app/config` (CON-6); dekoratory `@Public()` i `@CurrentUser()`; dokument OpenAPI budowany z `API_ENDPOINTS` funkcją `z.toJSONSchema` (BE-15), więc nie może rozjechać się z kodem.
+- **Auth (`libs/api/auth`, `libs/api/users`).** Argon2id przez `@node-rs/argon2` (19 MiB, 2 iteracje; gotowe binaria bez skryptów instalacyjnych), przy nieznanym emailu weryfikowany jest skrót zastępczy, żeby czas odpowiedzi nie zdradzał kont. JWT HS256 na 15 minut, refresh token 32 bajty base64url w bazie jako SHA-256. Rotacja unieważnia stary token warunkowo (`updateMany` z `revokedAt: null`), więc dwa równoległe odświeżenia tym samym tokenem są traktowane jak ponowne użycie i unieważniają rodzinę. Limit żądań `@nestjs/throttler` tylko na kontrolerze auth (BE-7).
+- **Aplikacja (`apps/api`).** `configure-app.ts` (helmet, CORS z `credentials: true`, cookie-parser, wersjonowanie URI, filtr wyjątków, Swagger UI pod `/docs` poza produkcją) używany przez `main.ts` i testy integracyjne. CSP z helmet jest wyłączony poza produkcją, bo Swagger UI używa skryptów inline. `/health` sprawdza bazę i zwraca 503, gdy nie odpowiada; pole `database` dodane do kontraktu jako opcjonalne (CON-5).
+- **Testy.** 74 testy jednostkowe w części API (pokrycie linii bibliotek 80–96%, próg 80% wymuszany w konfiguracji Vitest) i 27 testów integracyjnych (`npm run test:integration`, prawdziwy `AppModule` po HTTP na PostgreSQL, migracje przed testami). Celowe usunięcie unieważniania rodziny tokenów wykrywa test jednostkowy i integracyjny.
+- **Bezpieczeństwo zależności.** `overrides` dla `mysql2`, `deepmerge-ts` (zależności CLI Prismy, liczone przez npm jako produkcyjne) i `js-yaml` w `@nestjs/swagger` (ADR-0011).
+- **Docker.** `tools/docker/postgres-init` tworzy bazę `starter_test` przy pierwszym starcie wolumenu.
+- **Skille:** `add-endpoint`, `add-api-module`, `db-migration` w `.claude/skills/`.
+
 ### Krok 6. Web: platforma, HTTP, sesja
 
 Abstrakcje platformy z implementacjami webowymi i testowymi, interceptory, stan sesji w sygnałach, guardy tras.
@@ -645,13 +658,12 @@ Pipeline z sekcji 9.3, README (wymagania środowiska, komendy, dodawanie pluginu
 
 ## 12. Otwarte decyzje i ryzyka
 
-Trzy kwestie nie padły w dotychczasowych ustaleniach. Dokument przyjmuje dla nich wartości domyślne, które można zmienić przed krokiem wskazanym w tabeli.
+Dwie kwestie nie padły w dotychczasowych ustaleniach. Dokument przyjmuje dla nich wartości domyślne, które można zmienić przed krokiem wskazanym w tabeli.
 
 ### Otwarte decyzje
 
 | Decyzja | Przyjęte domyślnie | Alternatywa | Rozstrzygnąć przed |
 | --- | --- | --- | --- |
-| ORM | Prisma 7.9.x: dojrzałe migracje, typy generowane ze schematu | Drizzle (bliżej SQL, lżejszy) lub TypeORM (klasy i dekoratory w stylu NestJS) | Krok 5 |
 | Biblioteka UI | Własne minimalne komponenty w `libs/web/ui` | Ionic (gotowe natywne odczucie) lub Angular Material | Krok 7 |
 | Plugin bezpiecznego magazynu | Wybór w kroku 8 spośród pluginów zgodnych z Capacitorem 8 | Własny plugin natywny | Krok 8 |
 

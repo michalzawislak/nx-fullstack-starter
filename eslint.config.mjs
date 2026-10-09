@@ -112,6 +112,7 @@ export default [
       '**/out-tsc',
       '**/vitest.config.*.timestamp*',
       '**/vite.config.*.timestamp*',
+      '**/src/generated/**',
     ],
   },
   {

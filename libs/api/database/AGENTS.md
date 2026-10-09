@@ -1,0 +1,9 @@
+# libs/api/database
+
+The only way to reach PostgreSQL (BE-10). Prisma 7 with the `prisma-client` generator and the `@prisma/adapter-pg` driver adapter.
+
+- Inject `PrismaService`; never create a `PrismaClient` elsewhere (the seed script is the only exception).
+- Schema: `prisma/schema.prisma`, migrations: `prisma/migrations/`, CLI config: `prisma.config.ts`. Follow the `db-migration` skill for any change.
+- The client is generated into `src/generated/prisma` (git-ignored) by `npm run db:generate`; Nx runs it automatically before `build`, `test` and `typecheck` of dependent projects.
+- Export only what other libraries need from `src/index.ts`: `PrismaService`, `DatabaseModule`, model types, `Prisma` and helpers such as `isUniqueConstraintError`. Domain modules map rows to contract types; database rows never leave the API.
+- The Prisma CLI downloads its schema engine from `binaries.prisma.sh` on first use. Where that host is blocked, `prisma generate` still works with `PRISMA_SCHEMA_ENGINE_BINARY` pointing to any executable, but migrations need the real engine.

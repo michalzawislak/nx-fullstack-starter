@@ -56,3 +56,6 @@ vitest.config.*.timestamp*
 .env
 .env.*
 !.env.example
+
+# Prisma client (npm run db:generate)
+libs/api/database/src/generated

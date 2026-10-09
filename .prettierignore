@@ -22,3 +22,6 @@ CLAUDE.md
 
 # Synced with the claude.ai project document
 docs/prd
+
+# Generated Prisma client
+libs/api/database/src/generated

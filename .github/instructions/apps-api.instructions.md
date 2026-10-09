@@ -9,8 +9,11 @@ applyTo: 'apps/api/**'
 NestJS 11 application that composes modules from `libs/api/*` (PRD section 7). Keep this app thin: bootstrap, global configuration and module wiring. Domain logic belongs in `libs/api/<module>`.
 
 - Dependency injection in NestJS is constructor-based; there is no `inject()` function as in Angular.
-- No global `/api` prefix. Business routes are versioned under `/v1` (from step 5); `GET /health` stays unversioned.
-- Configuration comes from environment variables listed in `/.env.example`; from step 5 they are validated with Zod at startup (BE-12). Do not read `process.env` outside the config module.
-- Tests: Vitest (`npx nx test api`), Arrange-Act-Assert, files next to the code as `*.spec.ts`. Add a module-level test that resolves real providers when a controller depends on a service, so missing decorator metadata is caught.
+- No global `/api` prefix. Business routes are versioned under `/v1` (`version: API_VERSION` in `@Controller`); `GET /health` stays unversioned.
+- Configuration comes from environment variables listed in `/.env.example`, validated with Zod at startup by `ConfigModule` in `@starter/api/common` (BE-12). Inject `APP_CONFIG`; do not read `process.env` anywhere else. A new variable goes into `environmentSchema`, `AppConfig` and `.env.example`.
+- HTTP setup (helmet, CORS, cookies, versioning, exception filter, Swagger UI) lives in `src/app/configure-app.ts` and is shared by `main.ts` and the integration tests. Change it there, never only in `main.ts`.
+- Unit tests: Vitest (`npx nx test api`), Arrange-Act-Assert, files next to the code as `*.spec.ts`. Resolve real providers through `Test.createTestingModule` at least once per controller, so missing decorator metadata is caught.
+- Integration tests: `src/integration/*.integration.spec.ts`, real `AppModule` over HTTP via `createTestApp()` from `src/testing/test-app.ts`, real PostgreSQL (`TEST_DATABASE_URL`). Run with `npm run test:integration`; migrations are applied first.
 - Build: webpack with the TypeScript compiler (`npx nx build api`). Do not switch to esbuild: it does not emit decorator metadata, which NestJS DI needs.
-- Code must stay compatible with NestJS 12 (ADR-0010): validate with Zod schemas from `libs/shared/contracts`, return errors with an `errorCode`.
+- Code must stay compatible with NestJS 12 (ADR-0010): validate with `SchemaValidationPipe` and schemas from `libs/shared/contracts`, throw `ApiException` with an `errorCode`.
+- Skills: `add-endpoint`, `add-api-module`, `db-migration` in `.claude/skills/`.

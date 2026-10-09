@@ -12,6 +12,7 @@ export default defineConfig(() => ({
     globals: true,
     environment: 'node',
     include: ['{src,tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+    exclude: ['src/**/*.integration.spec.ts'],
     passWithNoTests: true,
     reporters: ['default'],
     coverage: {

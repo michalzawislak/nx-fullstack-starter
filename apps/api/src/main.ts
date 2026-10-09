@@ -1,18 +1,19 @@
-import { Logger } from '@nestjs/common';
+import { ConsoleLogger, Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 
 import { AppModule } from './app/app.module';
-
-const DEFAULT_PORT = 3000;
+import { configureApp } from './app/configure-app';
 
 async function bootstrap(): Promise<void> {
-  const app = await NestFactory.create(AppModule);
-  app.enableShutdownHooks();
+  const isProduction = process.env['NODE_ENV'] === 'production';
+  // JSON logs in production (BE-16); readable logs locally.
+  const app = await NestFactory.create(AppModule, {
+    logger: new ConsoleLogger({ json: isProduction, colors: !isProduction }),
+  });
+  const config = configureApp(app);
 
-  const port = Number(process.env['PORT'] ?? DEFAULT_PORT);
-  await app.listen(port);
-
-  Logger.log(`API is running on http://localhost:${port}`, 'Bootstrap');
+  await app.listen(config.port);
+  Logger.log(`API is running on http://localhost:${config.port}`, 'Bootstrap');
 }
 
 void bootstrap();
