@@ -71,7 +71,8 @@ jobs:
     timeout-minutes: 20
     services:
       postgres:
-        image: postgres:18
+        # Docker Hub image via the AWS ECR Public mirror: same image, no Docker Hub timeouts or pull limits.
+        image: public.ecr.aws/docker/library/postgres:18
         env:
           POSTGRES_USER: starter
           POSTGRES_PASSWORD: starter
@@ -101,7 +102,8 @@ jobs:
     timeout-minutes: 30
     services:
       postgres:
-        image: postgres:18
+        # Docker Hub image via the AWS ECR Public mirror: same image, no Docker Hub timeouts or pull limits.
+        image: public.ecr.aws/docker/library/postgres:18
         env:
           POSTGRES_USER: starter
           POSTGRES_PASSWORD: starter
