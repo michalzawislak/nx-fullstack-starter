@@ -1,0 +1,149 @@
+# CI for every pull request and push to main (PRD section 9.3).
+# Native compilation and store publishing are out of scope; README → "CI" explains how to add them.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  NX_NO_CLOUD: 'true'
+  NX_TUI: 'false'
+  # Matches .env.example and the PostgreSQL services below.
+  DATABASE_URL: postgresql://starter:starter@localhost:5432/starter
+  TEST_DATABASE_URL: postgresql://starter:starter@localhost:5432/starter_test
+
+jobs:
+  checks:
+    name: Lint, typecheck, unit tests, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm install -g npm@11
+      - run: npm ci
+      # Base and head SHAs for `nx affected`.
+      - uses: nrwl/nx-set-shas@v4
+      - name: Lint, typecheck, build
+        run: npx nx affected -t lint typecheck build
+      # Separate run: --coverage is passed to every target of the command.
+      - name: Unit tests with coverage thresholds (QA-2)
+        run: npx nx affected -t test --coverage
+      - name: Formatting
+        run: npm run format:check
+      - name: AI context files match their sources
+        run: npm run ai:check
+      - name: Production dependencies without high or critical vulnerabilities (ADR-0011)
+        run: npm audit --omit=dev --audit-level=high
+      - name: Full audit (report only)
+        run: npm audit || true
+
+  secrets:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: gitleaks over the full history (QA-11)
+        run: >
+          docker run --rm -v "$PWD:/repo" -w /repo ghcr.io/gitleaks/gitleaks:v8.30.0
+          git . --config .gitleaks.toml --redact --verbose
+
+  integration:
+    name: API integration tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: starter
+          POSTGRES_PASSWORD: starter
+          POSTGRES_DB: starter_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U starter -d starter_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm install -g npm@11
+      - run: npm ci
+      - name: Integration tests (apply migrations first)
+        run: npm run test:integration
+      - name: Migrations match schema.prisma
+        run: npm run db:check
+        env:
+          DATABASE_URL: ${{ env.TEST_DATABASE_URL }}
+
+  e2e:
+    name: E2E (mobile and desktop)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: starter
+          POSTGRES_PASSWORD: starter
+          POSTGRES_DB: starter
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U starter -d starter"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm install -g npm@11
+      - run: npm ci
+      # The real .env, as on a developer machine: Nx loads it into every task, so a variable
+      # that leaks into the wrong process (like PORT did) breaks this job.
+      - run: cp .env.example .env
+      - run: npm run db:deploy
+      - run: npx playwright install --with-deps chromium
+      - run: npx nx e2e web-e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: dist/.playwright
+          retention-days: 7
+
+  mobile:
+    name: Mobile build and Capacitor sync
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm install -g npm@11
+      - run: npm ci
+      - name: Release build and sync (no native compilation)
+        run: npm run cap:sync
+      - name: Native projects match the installed plugins
+        run: git diff --exit-code -- ios android

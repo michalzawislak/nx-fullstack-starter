@@ -1,6 +1,6 @@
 # PRD: Starter Nx + Angular + NestJS + PostgreSQL + Capacitor
 
-Oct 9, 2026 · @Michał Zawiślak · wersja 11: wyniki kroków 1–8
+Oct 9, 2026 · @Michał Zawiślak · wersja 12: wyniki kroków 1–9
 
 ## 1. Cel i zakres
 
@@ -428,7 +428,7 @@ Kompilacja natywna i publikacja w sklepach są poza zakresem. README opisuje, ja
 
 ### 9.4 Wydajność
 
-- **QA-8.** Budżet początkowego bundla JavaScript: ostrzeżenie od 300 kB, błąd od 500 kB (rozmiar przed kompresją). Stan po kroku 7: 406 kB, z czego Angular (core, router, common z HTTP) ponad 390 kB przed minifikacją wspólnych części; ostrzeżenie jest oczekiwane, błąd chroni przed wzrostem (ADR-0015).
+- **QA-8.** Budżet początkowego bundla JavaScript: ostrzeżenie od 300 kB, błąd od 500 kB (rozmiar przed kompresją). Stan po kroku 8: 421 kB (406 kB po kroku 7 plus 14 kB Capacitora), z czego Angular (core, router, common z HTTP) ponad 390 kB przed minifikacją wspólnych części; ostrzeżenie jest oczekiwane, błąd chroni przed wzrostem (ADR-0015, ADR-0016).
 - **QA-9.** Cele Core Web Vitals dla wersji web na profilu mobilnym: LCP poniżej 2,5 s, INP poniżej 200 ms, CLS poniżej 0,1.
 - **QA-10.** Listy dłuższe niż 50 elementów korzystają z wirtualizacji.
 
@@ -692,6 +692,30 @@ Pipeline z sekcji 9.3, README (wymagania środowiska, komendy, dodawanie pluginu
 - [ ] Powrót z tła po godzinie
 
 **Gotowe, gdy:** świeży klon repozytorium spełnia kryterium sukcesu z sekcji 1 (w tym test w każdym z trzech narzędzi AI: widzi instrukcje główne i lokalne oraz listę skilli), a pipeline jest zielony.
+
+Uwagi z wykonania kroku 9:
+
+- **CI (`.github/workflows/ci.yml`).** Pięć równoległych jobów:
+  - `nx affected -t lint typecheck build` i `nx affected -t test --coverage` z `nrwl/nx-set-shas`, do tego `format:check`, `ai:check` oraz audyt zależności produkcyjnych (blokujący) i pełny (tylko raport);
+  - skan sekretów gitleaks 8.30 po całej historii;
+  - testy integracyjne na usłudze PostgreSQL 18 z `npm run db:check`, czyli `prisma migrate diff --from-config-datasource --to-schema --exit-code` (czy migracje odpowiadają `schema.prisma`);
+  - E2E z prawdziwym `.env` skopiowanym z `.env.example`;
+  - build `mobile` z `cap sync` i kontrolą, że `ios/` i `android/` w gicie odpowiadają pluginom.
+
+  Pipeline czeka na pierwszy przebieg na GitHubie; lokalnie przechodzą wszystkie jego kroki poza pobraniem obrazu gitleaks (skan wykonany binarką tej samej wersji).
+- **Poprawka po kroku 8: `API_PORT`.** Nx wczytuje `.env` do każdego zadania, a serwer Angulara przejmuje port ze zmiennej `PORT`, więc `npm run dev` u autora uruchamiał web na porcie API (404 przy logowaniu, „offline” w aplikacji iOS). API czyta teraz `API_PORT`, z `PORT` jako zapasem dla platform hostingowych. Job E2E z prawdziwym `.env` wyłapuje ten rodzaj błędu.
+- **Hook przed commitem (QA-7).** husky 9.1.7 i lint-staged 17.6.0: ESLint z poprawkami (`--flag v10_config_lookup_from_file`, więc każdy plik dostaje konfigurację swojego projektu) i Prettier na plikach w commicie.
+- **Projekt `tools`.**
+  - `tools/ai/sync.mts` eksportuje logikę (`syncAiContext`, `buildExpectedFiles`) i ma 6 testów na katalogu tymczasowym: generowanie, `--check`, ręczna edycja, pliki osierocone, katalogi pomijane, brak sekcji.
+  - `tools/lint/lint-rules.spec.mts` ma 14 testów regresji reguł architektury: granice modułów w obie strony, Capacitor i globale przeglądarki, klasyczny Zod, `any`, `innerHTML`, `bypassSecurityTrust*`, kontrakt bez Angulara, kolejność importów, dozwolone przypadki w warstwie platformy oraz szablony bez `[innerHTML]`.
+  - Celowe wyłączenie reguły globali przeglądarki wykrywają dwa testy.
+- **QA-13.** Nowa reguła `no-restricted-syntax` blokuje `innerHTML`, `outerHTML` i `bypassSecurityTrust*`. Test sprawdza też szablony HTML.
+- **QA-11.** `.gitleaks.toml` rozszerza reguły domyślne o wyjątki dla fałszywych sekretów w testach (dwa znaleziska w historii, oba w konfiguracji testów integracyjnych).
+- **Dokumentacja.**
+  - `docs/architecture.md`: zasady, warstwy i granice, kontrakt, uwierzytelnianie, platforma, wersje aplikacji, konfiguracja, jakość, rozszerzanie, ograniczenia.
+  - README: mapa repozytorium z linkami, tabela „gdzie co piszesz”, przebieg logowania od ekranu do bazy, konfiguracja, testy, CI i opis dodania kompilacji natywnej.
+  - Skill `architecture-review` (lista kontrolna przeglądu i format raportu).
+- **Lista kontrolna na urządzeniu** w README, rozszerzona o reinstalację, splash i pasek stanu. Logowanie i zachowanie sesji po restarcie autor sprawdził na symulatorze iOS 27 i emulatorze Androida.
 
 ## 12. Otwarte decyzje i ryzyka
 

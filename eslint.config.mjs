@@ -112,6 +112,20 @@ const platformRestrictedGlobals = [
   'navigator',
 ].map((name) => ({ name, message: platformGlobalMessage }));
 
+/** XSS: rely on Angular sanitisation, never on raw HTML or trust bypasses (PRD QA-13). */
+const unsafeHtmlRestrictions = [
+  {
+    selector: 'MemberExpression[property.name=/^(innerHTML|outerHTML)$/]',
+    message:
+      'Do not write raw HTML; bind text or use Angular templates (QA-13).',
+  },
+  {
+    selector: 'CallExpression[callee.property.name=/^bypassSecurityTrust/]',
+    message:
+      'Do not bypass Angular sanitisation (QA-13); add an ADR if it is truly needed.',
+  },
+];
+
 export default [
   ...nx.configs['flat/base'],
   ...nx.configs['flat/typescript'],
@@ -157,6 +171,7 @@ export default [
       // Secure by default everywhere; only libs/web/core/platform opts out.
       'no-restricted-imports': ['error', platformRestrictedImports],
       'no-restricted-globals': ['error', ...platformRestrictedGlobals],
+      'no-restricted-syntax': ['error', ...unsafeHtmlRestrictions],
     },
   },
 ];

@@ -1,0 +1,17 @@
+{
+  "name": "tools",
+  "$schema": "../node_modules/nx/schemas/project-schema.json",
+  "projectType": "library",
+  "sourceRoot": "tools",
+  "tags": ["scope:tools", "type:tooling"],
+  "targets": {
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "cache": true,
+      "inputs": ["default"],
+      "options": {
+        "command": "tsc -p tools/tsconfig.json --noEmit"
+      }
+    }
+  }
+}

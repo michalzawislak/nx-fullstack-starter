@@ -1,0 +1,11 @@
+# Secret scan configuration (PRD QA-11). CI: gitleaks over the full git history.
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Fake secrets of test fixtures; never used outside tests"
+paths = [
+  '''^apps/api/src/testing/''',
+  '''^apps/api/vitest\.integration\.config\.mts$''',
+  '''\.spec\.m?ts$''',
+]

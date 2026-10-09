@@ -2,11 +2,12 @@
 
 Szablon monorepo: jedna baza kodu dla aplikacji web, aplikacji iOS i Android (Capacitor) oraz API w NestJS z PostgreSQL. Starter nie zawiera logiki biznesowej. Daje konta użytkowników, logowanie z odświeżaniem sesji, obsługę błędów, wersjonowane API i natywną otoczkę mobilną, na których budujesz właściwą aplikację.
 
+- Jak to działa i dlaczego: [`docs/architecture.md`](docs/architecture.md)
 - Wymagania i plan budowy: [`docs/prd/starter.md`](docs/prd/starter.md)
 - Uzasadnienia decyzji (ADR): [`docs/decisions/`](docs/decisions/README.md)
 - Kontekst produktu budowanego na starterze: [`docs/product/`](docs/product/README.md)
 
-> Stan: krok 8 z 9. Działa web, iOS, Android i API z bazą; logowanie sprawdzone na wszystkich platformach. CI i dokumentacja końcowa dochodzą w kroku 9.
+> Stan: kroki 1–9 z PRD zaimplementowane. Web, iOS, Android i API z bazą działają, logowanie sprawdzone na wszystkich platformach. Do potwierdzenia: pierwszy zielony przebieg CI na GitHubie ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) i test świeżego klonu w Claude Code, Cursorze i Copilocie.
 
 ## Spis treści
 
@@ -19,10 +20,11 @@ Szablon monorepo: jedna baza kodu dla aplikacji web, aplikacji iOS i Android (Ca
 7. [Jak przepływa żądanie: logowanie od ekranu do bazy](#jak-przepływa-żądanie-logowanie-od-ekranu-do-bazy)
 8. [Konfiguracja](#konfiguracja)
 9. [Testy](#testy)
-10. [Komendy](#komendy)
-11. [Wersje](#wersje-nx-report-9-października-2026)
-12. [Aplikacje mobilne](#aplikacje-mobilne)
-13. [Praca z narzędziami AI](#praca-z-narzędziami-ai)
+10. [CI i hook przed commitem](#ci-i-hook-przed-commitem)
+11. [Komendy](#komendy)
+12. [Wersje](#wersje-nx-report-9-października-2026)
+13. [Aplikacje mobilne](#aplikacje-mobilne)
+14. [Praca z narzędziami AI](#praca-z-narzędziami-ai)
 
 ## Wymagania
 
@@ -103,6 +105,9 @@ Każdy obszar ma swój `AGENTS.md` z zasadami. To instrukcje dla narzędzi AI, a
 | [`tsconfig.base.json`](tsconfig.base.json)                                                           | Aliasy `@starter/*` → `libs/*/src/index.ts`, `strict`                                                                                                    |
 | [`eslint.config.mjs`](eslint.config.mjs)                                                             | Granice modułów, kolejność importów, zakaz `any`, zakazy Capacitora i globali przeglądarki                                                               |
 | [`.prettierrc`](.prettierrc), [`.prettierignore`](.prettierignore), [`.editorconfig`](.editorconfig) | Formatowanie                                                                                                                                             |
+| [`.husky/pre-commit`](.husky/pre-commit)                                                             | Hook przed commitem: `lint-staged` (konfiguracja w `package.json`)                                                                                       |
+| [`.github/workflows/ci.yml`](.github/workflows/ci.yml)                                               | Pipeline CI (sekcja [CI](#ci-i-hook-przed-commitem))                                                                                                     |
+| [`.gitleaks.toml`](.gitleaks.toml)                                                                   | Skan sekretów: reguły domyślne gitleaks i wyjątki dla fałszywych sekretów w testach                                                                      |
 | [`.env.example`](.env.example)                                                                       | Wzór zmiennych środowiskowych; kopiujesz do `.env` (nie trafia do gita)                                                                                  |
 | [`docker-compose.yml`](docker-compose.yml)                                                           | PostgreSQL 18 do pracy lokalnej; [`tools/docker/postgres-init/`](tools/docker/postgres-init/) tworzy bazę testową                                        |
 | [`capacitor.config.ts`](capacitor.config.ts)                                                         | Identyfikator aplikacji, katalog z buildem web, ustawienia pluginów, flagi tylko dla buildów deweloperskich                                              |
@@ -162,13 +167,14 @@ Katalogi `public/` z buildem web i `capacitor.config.json` są generowane przez 
 
 ### Dokumentacja i narzędzia
 
-| Katalog                              | Co w nim jest                                                                                                                                       |
-| ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`docs/prd/`](docs/prd/)             | PRD: wymagania z identyfikatorami (FE-3, BE-4, MOB-12…), plan budowy, uwagi z wykonania kroków                                                      |
-| [`docs/decisions/`](docs/decisions/) | ADR-y: dlaczego wybraliśmy dane rozwiązanie. Zmiana decyzji to nowy ADR ([szablon](docs/decisions/0000-szablon.md))                                 |
-| [`docs/product/`](docs/product/)     | Pusty w starterze; tu opisujesz produkt, który budujesz (domena, słownik pojęć, użytkownicy)                                                        |
-| [`tools/ai/`](tools/ai/)             | [`sync.mts`](tools/ai/sync.mts): generator plików dla Claude Code, Cursora i Copilota. [`mcp-servers.json`](tools/ai/mcp-servers.json): serwery MCP |
-| [`.claude/skills/`](.claude/skills/) | Przepisy krok po kroku dla typowych zadań (czytane przez wszystkie trzy narzędzia AI, przydatne też dla ludzi)                                      |
+| Katalog                                        | Co w nim jest                                                                                                                                                                                                                                                                                                                 |
+| ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`docs/architecture.md`](docs/architecture.md) | Zasady, warstwy i granice, kontrakt, uwierzytelnianie, platforma, błędy, konfiguracja, jakość                                                                                                                                                                                                                                 |
+| [`docs/prd/`](docs/prd/)                       | PRD: wymagania z identyfikatorami (FE-3, BE-4, MOB-12…), plan budowy, uwagi z wykonania kroków                                                                                                                                                                                                                                |
+| [`docs/decisions/`](docs/decisions/)           | ADR-y: dlaczego wybraliśmy dane rozwiązanie. Zmiana decyzji to nowy ADR ([szablon](docs/decisions/0000-szablon.md))                                                                                                                                                                                                           |
+| [`docs/product/`](docs/product/)               | Pusty w starterze; tu opisujesz produkt, który budujesz (domena, słownik pojęć, użytkownicy)                                                                                                                                                                                                                                  |
+| [`tools/`](tools/)                             | Narzędzia repozytorium jako projekt Nx `tools` z testami. [`ai/sync.mts`](tools/ai/sync.mts): generator plików dla Claude Code, Cursora i Copilota. [`ai/mcp-servers.json`](tools/ai/mcp-servers.json): serwery MCP. [`lint/lint-rules.spec.mts`](tools/lint/lint-rules.spec.mts): testy reguł lintu pilnujących architektury |
+| [`.claude/skills/`](.claude/skills/)           | Przepisy krok po kroku dla typowych zadań (czytane przez wszystkie trzy narzędzia AI, przydatne też dla ludzi)                                                                                                                                                                                                                |
 
 ## Gdzie co piszesz
 
@@ -191,6 +197,8 @@ Katalogi `public/` z buildem web i `capacitor.config.json` są generowane przez 
 | Zapisać ustawienie użytkownika na urządzeniu          | `inject(KEY_VALUE_STORAGE)`. Sekrety tylko w `SECURE_STORAGE`                                                                                                                                                                                                                 | [`libs/web/core/platform/AGENTS.md`](libs/web/core/platform/AGENTS.md)       |
 | Opisać produkt dla siebie i AI                        | [`docs/product/`](docs/product/README.md)                                                                                                                                                                                                                                     | —                                                                            |
 | Zapisać decyzję architektoniczną                      | Nowy plik w [`docs/decisions/`](docs/decisions/README.md)                                                                                                                                                                                                                     | [szablon](docs/decisions/0000-szablon.md)                                    |
+| Sprawdzić zmianę pod kątem architektury               | Lista kontrolna w skillu                                                                                                                                                                                                                                                      | [`architecture-review`](.claude/skills/architecture-review/SKILL.md)         |
+| Dodać regułę lintu pilnującą architektury             | [`eslint.config.mjs`](eslint.config.mjs) i przypadek testowy w [`lint-rules.spec.mts`](tools/lint/lint-rules.spec.mts)                                                                                                                                                        | [`tools/AGENTS.md`](tools/AGENTS.md)                                         |
 | Zmienić instrukcje dla AI                             | `AGENTS.md` w danym obszarze, potem `npm run ai:sync`                                                                                                                                                                                                                         | [Praca z narzędziami AI](#praca-z-narzędziami-ai)                            |
 
 Zasada ogólna: aplikacje w `apps/` tylko składają całość (trasy, rejestracja providerów, lista modułów). Logika trafia do bibliotek.
@@ -256,16 +264,36 @@ Pliki podmienia `fileReplacements` w [`apps/web/project.json`](apps/web/project.
 
 ## Testy
 
-| Rodzaj           | Gdzie leżą                                                                                    | Uruchomienie                                                 |
-| ---------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| Jednostkowe      | Obok kodu, `*.spec.ts` w każdej bibliotece i aplikacji                                        | `npx nx test <projekt>`, wszystko: `npx nx run-many -t test` |
-| Integracyjne API | [`apps/api/src/integration/`](apps/api/src/integration/) (prawdziwe API po HTTP i PostgreSQL) | `npm run test:integration` (wymaga `npm run db:up`)          |
-| E2E              | [`apps/web-e2e/src/`](apps/web-e2e/src/) (Playwright, widok mobilny i desktopowy)             | `npx nx e2e web-e2e`                                         |
-| Na urządzeniu    | Lista kontrolna w sekcji [Aplikacje mobilne](#lista-kontrolna-na-urządzeniu)                  | ręcznie                                                      |
+| Rodzaj                         | Gdzie leżą                                                                                    | Uruchomienie                                                 |
+| ------------------------------ | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| Jednostkowe                    | Obok kodu, `*.spec.ts` w każdej bibliotece i aplikacji                                        | `npx nx test <projekt>`, wszystko: `npx nx run-many -t test` |
+| Integracyjne API               | [`apps/api/src/integration/`](apps/api/src/integration/) (prawdziwe API po HTTP i PostgreSQL) | `npm run test:integration` (wymaga `npm run db:up`)          |
+| E2E                            | [`apps/web-e2e/src/`](apps/web-e2e/src/) (Playwright, widok mobilny i desktopowy)             | `npx nx e2e web-e2e`                                         |
+| Narzędzia                      | [`tools/`](tools/) (generator kontekstu AI, reguły lintu)                                     | `npx nx test tools`                                          |
+| Zgodność migracji ze schematem | `schema.prisma` kontra baza po migracjach                                                     | `npm run db:check` (wymaga `npm run db:up`)                  |
+| Na urządzeniu                  | Lista kontrolna w sekcji [Aplikacje mobilne](#lista-kontrolna-na-urządzeniu)                  | ręcznie                                                      |
 
 - Każdy test ma układ Arrange / Act / Assert. Próg pokrycia linii to 80% (konfiguracja w `vite.config.mts` biblioteki).
 - Na froncie testujesz z atrapami platformy: `providePlatformTesting()` z [`platform-testing.ts`](libs/web/core/platform/src/lib/testing/platform-testing.ts). W `core/auth` i `core/http` są gotowe pomocnicze `testing.spec-helpers.ts`.
 - W API testy jednostkowe używają atrap repozytoriów (wzór: [`in-memory-refresh-tokens.ts`](libs/api/auth/src/lib/testing/in-memory-refresh-tokens.ts)), a integracyjne używają [`test-app.ts`](apps/api/src/testing/test-app.ts).
+
+## CI i hook przed commitem
+
+**Hook przed commitem** ([`.husky/pre-commit`](.husky/pre-commit)) uruchamia ESLint z poprawkami i Prettiera na plikach w commicie (`lint-staged`). Instaluje się sam przy `npm install` (skrypt `prepare`). Commit z błędem lintu zostaje zatrzymany. Pominięcie hooka (`git commit --no-verify`) niczego nie ułatwia, bo CI sprawdza to samo.
+
+**CI** ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) działa przy każdym pull requeście i pushu do `main`. Ma pięć równoległych jobów:
+
+| Job                                | Co sprawdza                                                                                                                                                                                                                                      |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Lint, typecheck, unit tests, build | `nx affected -t lint typecheck build` i `nx affected -t test --coverage` (tylko projekty dotknięte zmianą; progi pokrycia przerywają job), `format:check`, `ai:check`, `npm audit --omit=dev --audit-level=high` (pełny audyt tylko jako raport) |
+| Secret scan                        | gitleaks po całej historii (`.gitleaks.toml`)                                                                                                                                                                                                    |
+| API integration tests              | Testy integracyjne na PostgreSQL 18, potem `db:check`: czy migracje odpowiadają `schema.prisma`                                                                                                                                                  |
+| E2E                                | Playwright w widoku mobilnym i desktopowym. Startuje z prawdziwym `.env` z `.env.example`, więc wyłapie zmienną, która trafi do złego procesu (jak `PORT`)                                                                                       |
+| Mobile                             | Build `mobile` i `cap sync` bez kompilacji natywnej; projekty `ios/` i `android/` w gicie muszą odpowiadać zainstalowanym pluginom                                                                                                               |
+
+Żeby wymagać zielonego CI przed scaleniem: GitHub → Settings → Branches → reguła dla `main` → „Require status checks to pass” i zaznacz te pięć jobów.
+
+**Kompilacja natywna w CI (poza zakresem startera).** Dodaj job na `macos-latest`: `npm ci`, `npm run cap:sync`, potem `xcodebuild -project ios/App/App.xcodeproj -scheme App -sdk iphonesimulator CODE_SIGNING_ALLOWED=NO build`. Dla Androida wystarczy job na `ubuntu-latest` z `actions/setup-java` (JDK 21) i `./gradlew assembleDebug` w `android/`. Podpisywanie i publikację w sklepach najprościej zrobić przez fastlane z certyfikatami w sekretach repozytorium.
 
 ## Komendy
 
@@ -286,6 +314,9 @@ Pliki podmienia `fileReplacements` w [`apps/web/project.json`](apps/web/project.
 | Otwórz Xcode / Android Studio | `npm run cap:ios` / `npm run cap:android`                            |
 | Mobile z lokalnym API         | `npm run cap:ios:dev` / `npm run cap:android:dev`                    |
 | Mobile z live reload          | `npm run cap:dev:ios` / `npm run cap:dev:android`                    |
+| Formatowanie                  | `npm run format` / `npm run format:check`                            |
+| Migracje kontra schemat       | `npm run db:check`                                                   |
+| Testy narzędzi                | `npx nx test tools`                                                  |
 | Graf projektów                | `npx nx graph`                                                       |
 | Pliki kontekstu AI            | `npm run ai:sync` / `npm run ai:check`                               |
 

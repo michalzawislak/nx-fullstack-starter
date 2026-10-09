@@ -1,0 +1,2 @@
+# Lint and format the staged files (PRD QA-7). CI runs the full checks.
+npx lint-staged

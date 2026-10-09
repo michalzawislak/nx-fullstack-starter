@@ -23,7 +23,11 @@
     "cap:ios:dev": "npm run cap:sync:dev && cap open ios",
     "cap:android:dev": "npm run cap:sync:dev && cap open android",
     "cap:dev:ios": "npm run build:mobile:dev && nx run web:cap-run:ios",
-    "cap:dev:android": "npm run build:mobile:dev && nx run web:cap-run:android"
+    "cap:dev:android": "npm run build:mobile:dev && nx run web:cap-run:android",
+    "prepare": "husky",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "db:check": "prisma migrate diff --config libs/api/database/prisma.config.ts --from-config-datasource --to-schema libs/api/database/prisma/schema.prisma --exit-code"
   },
   "private": true,
   "dependencies": {
@@ -102,7 +106,9 @@
     "eslint-config-prettier": "^10.0.0",
     "eslint-plugin-playwright": "^1.6.2",
     "eslint-plugin-simple-import-sort": "^14.0.0",
+    "husky": "^9.1.7",
     "jsdom": "^27.1.0",
+    "lint-staged": "^17.6.0",
     "nx": "23.3.0",
     "prettier": "~3.6.2",
     "prisma": "^7.10.0",
@@ -128,5 +134,12 @@
   "engines": {
     "node": "^24.15.0",
     "npm": ">=11.0.0"
+  },
+  "lint-staged": {
+    "*.{ts,mts,cts,js,mjs,cjs}": [
+      "eslint --flag v10_config_lookup_from_file --fix --no-warn-ignored",
+      "prettier --write"
+    ],
+    "*.{json,md,html,scss,css,yml,yaml}": "prettier --write --ignore-unknown"
   }
 }
